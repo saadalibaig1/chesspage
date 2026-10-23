@@ -12,28 +12,28 @@ Vite + React + TypeScript single-page app. chess.js for move legality; custom-bu
 
 ## Users
 
-Chess enthusiasts who want a short daily ritual: open the page once a day, spend about five minutes solving puzzles, share the result, come back tomorrow. Desktop and phone, often in a spare moment (coffee, commute, between meetings).
+Chess enthusiasts who want a short daily ritual: open the page once a day, spend a few minutes on one puzzle, share the result, come back tomorrow. Desktop and phone, often in a spare moment (coffee, commute, between meetings).
 
 ## Product Purpose
 
-ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone gets the same sequence of 5 puzzles of increasing difficulty, each solvable in under a minute. There is no time limit. Once the day's set is completed it cannot be replayed until tomorrow. Success is a habit: people return daily and keep their streak alive.
+ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone gets the same puzzle and six tries. A wrong move uses a try. There is no time limit. Once the day's puzzle is done, it cannot be replayed until tomorrow. Success is a habit: people return daily and keep their streak alive.
 
 ## Positioning
 
-Finite, shared and social, where chess.com and Lichess puzzles are endless solo grinding. One set per day, the same for everyone, so results are comparable and worth sharing. Country leaderboards turn a solo puzzle into a light national competition.
+Finite, shared and social, where chess.com and Lichess puzzles are endless solo grinding. One puzzle per day, the same for everyone, so results are comparable and worth sharing. Country leaderboards turn a solo puzzle into a light national competition.
 
 ## Operating Context
 
 - Daily session tracked on the device. A completed day is locked until the next local day.
-- A testing toggle can generate a fresh puzzle set and bypass the lock.
+- A testing toggle can generate a fresh puzzle and bypass the lock.
 - Intro popup on first visit explains the rules, as Wordle does. A success popup congratulates on completion.
 - The share result is plain text plus emoji (Wordle-style) to copy and paste into Slack, chat or social posts.
-- Wrong moves are allowed and cost points. The puzzle never auto-reveals. A separate Reveal button exists, and using it marks that puzzle as failed.
+- A wrong move uses a try. After six misses, the solution plays out with arrows, and the idea and the full solution are shown. A two-step hint (the piece, then its path) is available unless Hard Mode is on.
 
 ## Capabilities and Constraints
 
-- Score combines solve time with the player's daily streak.
-- Leaderboards are country-based only, with three categories: Time, Score and Streak. No individual user leaderboard in v1.
+- Results are Wordle-style: n/6 (or X/6), win %, current and max streak. There are no points.
+- Leaderboards are country-based only, with three categories: Win %, average tries, and streak. No individual user leaderboard in v1.
 - The country is inferred on the client (no backend). Country leaderboard data is simulated in this prototype, with the player's own result merged into their country.
 - No sign-in in v1. Google SSO was discussed for future individual leaderboards and is deferred.
 - Puzzles come from the Lichess open puzzle database (CC0), are curated by rating band, and never repeat day to day.
