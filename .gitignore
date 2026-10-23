@@ -1,0 +1,8 @@
+node_modules
+dist
+.vercel
+.superpowers
+.impeccable
+.claude
+.DS_Store
+*.tsbuildinfo
