@@ -1,5 +1,5 @@
 import {
-  formatTime, ladderResult, ladderStats, livesLeft, practiceNext, shareText, TIMER_MS, timerShareText, winWord,
+  formatTime, ladderResult, ladderStats, practiceNext, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, winWord,
   type DayResult, type PuzzleResult,
 } from './results';
 
@@ -13,10 +13,11 @@ test('ladderResult: solved count, a failed step, hint flag', () => {
   expect(ladderResult(Array.from({ length: 6 }, () => r()))).toMatchObject({ n: 6, hinted: false });
 });
 
-test('livesLeft: 3 lives shared across the whole ladder', () => {
-  expect(livesLeft([], 0)).toBe(3);
-  expect(livesLeft([r({ mistakes: 1 }), r()], 1)).toBe(1);
-  expect(livesLeft([r({ mistakes: 2 })], 2)).toBe(0);
+test('triesLeft: 6 tries on every puzzle, each wrong move uses one', () => {
+  expect(TRIES).toBe(6);
+  expect(triesLeft(0)).toBe(6);
+  expect(triesLeft(5)).toBe(1);
+  expect(triesLeft(6)).toBe(0);
 });
 
 test('shareText: one square per step, unreached steps white', () => {

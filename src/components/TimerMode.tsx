@@ -129,19 +129,23 @@ export function TimerMode({ puzzle, today, day, store, update, test, paused, toa
         {state === 'over' ? `The idea: ${themeLabel(puzzle.themes)}` : `One puzzle · one minute · ${LEVELS[puzzle.level]}`}
       </p>
 
-      <Stage g={g} coords={store.settings.coords} onMove={onMove} veiled={state === 'ready'} />
+      <Stage
+        g={g}
+        coords={store.settings.coords}
+        onMove={onMove}
+        veil={state === 'ready' && (
+          <button type="button" className="key go start" onClick={begin}>{saved ? 'Resume' : 'Start'}</button>
+        )}
+      />
 
       <footer className="strip">
         {state === 'ready' ? (
-          <>
-            <p className="status">
-              <span className="status-text">
-                <b>{saved ? `${formatTime(left + 999)} left` : 'Beat the clock'}</b>
-                <small>{saved ? 'Your clock is paused' : 'The board shows when you start'}</small>
-              </span>
-            </p>
-            <button type="button" className="key go wide" onClick={begin}>{saved ? 'Resume' : 'Start'}</button>
-          </>
+          <p className="status">
+            <span className="status-text">
+              <b>{saved ? `${formatTime(left + 999)} left` : 'Beat the clock'}</b>
+              <small>{saved ? 'Your clock is paused' : 'The board shows when you start'}</small>
+            </span>
+          </p>
         ) : state === 'running' ? (
           <StatusLine g={g} />
         ) : (

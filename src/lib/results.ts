@@ -2,14 +2,15 @@ import { LADDER_SIZE, LEVELS } from './daily';
 
 export type Mode = 'ladder' | 'practice' | 'timer';
 export type Outcome = 'solved' | 'failed';
-/** One ladder step. failed = ran out of lives on it. */
+/** One ladder step. failed = ran out of tries on it. */
 export type PuzzleResult = { level: number; timeMs: number; mistakes: number; hinted: boolean; failed: boolean };
 /** A finished day: n = puzzles solved (how high you climbed). */
 export type DayResult = { n: number; grid: Outcome[]; hinted: boolean; timeMs: number };
 /** Timer mode's day: solved within the minute, and how long it took. */
 export type TimerResult = { solved: boolean; ms: number };
 
-export const LIVES = 3;
+/** Tries per ladder puzzle. Each wrong move uses one; the same wrong move again is free. */
+export const TRIES = 6;
 export const TIMER_MS = 60_000;
 const QUICK_MS = 15_000;
 
@@ -22,9 +23,7 @@ export function ladderResult(results: PuzzleResult[]): DayResult {
   };
 }
 
-export function livesLeft(results: PuzzleResult[], currentMistakes: number): number {
-  return Math.max(0, LIVES - results.reduce((t, r) => t + r.mistakes, 0) - currentMistakes);
-}
+export const triesLeft = (mistakes: number) => Math.max(0, TRIES - mistakes);
 
 const EMOJI: Record<Outcome, string> = { solved: '🟩', failed: '🟥' };
 

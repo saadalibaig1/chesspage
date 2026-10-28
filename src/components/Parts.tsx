@@ -1,14 +1,18 @@
+import type { ReactNode } from 'react';
 import { Board } from './Board';
 import type { Sq } from '../lib/puzzle';
 import type { usePuzzle } from './usePuzzle';
 
 type G = ReturnType<typeof usePuzzle>;
 
-/** veiled = blurred, so a timed puzzle can't be studied before the clock starts. */
-export function Stage({ g, coords, onMove, veiled = false }: { g: G; coords: boolean; onMove: (from: Sq, to: Sq) => void; veiled?: boolean }) {
+type StageProps = { g: G; coords: boolean; onMove: (from: Sq, to: Sq) => void; veil?: ReactNode };
+
+/** veil = blur the board and center this over it, so a timed puzzle can't be studied before the clock starts. */
+export function Stage({ g, coords, onMove, veil }: StageProps) {
   const r = g.run;
   return (
-    <main className={`stage${veiled ? ' veiled' : ''}`} aria-hidden={veiled || undefined}>
+    <main className={`stage${veil ? ' veiled' : ''}`}>
+      {veil && <div className="veil">{veil}</div>}
       {r && (
         <Board
           run={r}

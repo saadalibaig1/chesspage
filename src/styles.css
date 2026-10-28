@@ -283,22 +283,22 @@ button {
   color: var(--muted);
 }
 
-/* Ladder lives: filled dots left, hollow dots lost. */
-.lives {
+/* Ladder tries: filled dots left, hollow dots used. */
+.tries {
   display: inline-flex;
-  gap: 5px;
+  gap: 4px;
   margin-left: 10px;
   vertical-align: -1px;
 }
 
-.lives span {
-  width: 12px;
-  height: 12px;
+.tries span {
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   border: 2px solid var(--line-strong);
 }
 
-.lives .on {
+.tries .on {
   border-color: var(--text);
   background: var(--text);
 }
@@ -347,10 +347,33 @@ button {
 
 .clock.low { color: var(--red); }
 
-/* Timer mode hides the board until Start. */
+/* Timer mode hides the board until Start, with the Start key centered on it. */
+.stage.veiled {
+  position: relative;
+}
+
 .stage.veiled .board {
-  filter: blur(10px);
+  filter: blur(18px) saturate(0.6);
+  opacity: 0.55;
   pointer-events: none;
+}
+
+.veil {
+  position: absolute;
+  inset: 20px 0 0; /* the stage's top padding */
+  z-index: 2;
+  display: grid;
+  place-items: center;
+}
+
+/* Darker green than other go keys: white text stays above 4.5:1 on top of the blur. */
+.veil .key.start,
+.veil .key.start:hover:not(:disabled) {
+  height: 56px;
+  min-width: 160px;
+  background: color-mix(in srgb, var(--green), #000 28%);
+  font-size: 18px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
 }
 
 /* ---------- Toasts ---------- */

@@ -3,7 +3,7 @@ import { SolutionLine, Stage, StatusLine } from './Parts';
 import { usePuzzle } from './usePuzzle';
 import { LADDER_SIZE, LEVELS, type Puzzle } from '../lib/daily';
 import type { Sq } from '../lib/puzzle';
-import { ladderResult, livesLeft, LIVES, winWord, type DayResult, type Outcome, type PuzzleResult } from '../lib/results';
+import { ladderResult, TRIES, triesLeft, winWord, type DayResult, type Outcome, type PuzzleResult } from '../lib/results';
 import { loadProgress, recordDay, type Current, type Store } from '../lib/storage';
 import { themeLabel } from '../lib/themes';
 import { buzz, play } from '../lib/sound';
@@ -22,7 +22,7 @@ type Props = {
 
 const FAIL_TOAST_MS = 2500;
 
-/** The daily ladder: six puzzles from 1000 to 2000, three lives for the whole climb. */
+/** The daily ladder: six puzzles from 1000 to 2000, six tries on each. */
 export function Ladder({ set, today, store, update, test, paused, toast, onComplete, onShowStats }: Props) {
   const g = usePuzzle(paused);
   const history = test ? undefined : store.ladder.history[today];
@@ -90,24 +90,24 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
     const res = g.move(from, to);
     if (res === 'repeat') {
       toast('Already tried that', FAIL_TOAST_MS);
-      g.setStatus({ text: 'Already tried that', sub: 'No life lost', bad: true });
+      g.setStatus({ text: 'Already tried that', sub: 'No try used', bad: true });
       return;
     }
     if (res === 'wrong') {
       const m = mistakes + 1;
-      const left = livesLeft(results, m);
+      const left = triesLeft(m);
       setMistakes(m);
       if (left === 0) {
         saveCurrent({ mistakes: m, hinted, failed: true });
-        toast('Out of lives', FAIL_TOAST_MS);
-        g.setStatus({ text: 'Out of lives', bad: true });
+        toast('Out of tries', FAIL_TOAST_MS);
+        g.setStatus({ text: 'Out of tries', bad: true });
         const step: PuzzleResult = { level: index, timeMs: g.elapsed(), mistakes: m, hinted, failed: true };
         g.later(900, () => g.playSolution(() => finish([...results, step])));
         return;
       }
       saveCurrent({ mistakes: m, hinted, failed: false });
       toast('Not quite', FAIL_TOAST_MS);
-      g.setStatus({ text: 'Not quite', sub: `${left} ${left === 1 ? 'life' : 'lives'} left`, bad: true });
+      g.setStatus({ text: 'Not quite', sub: `${left} ${left === 1 ? 'try' : 'tries'} left`, bad: true });
       return;
     }
     if (res === 'solved') {
@@ -135,7 +135,7 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
   const initial = useRef<(Outcome | null)[] | null>(null);
   initial.current ??= grid; // tiles filled at mount show instantly; later ones flip
 
-  const lives = livesLeft(results, mistakes);
+  const left = triesLeft(mistakes);
   const final = history ?? over;
   const idea = themeLabel(set[index]?.themes ?? '');
 
@@ -160,8 +160,8 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
         ) : (
           <>
             Puzzle {index + 1} of {LADDER_SIZE} · {LEVELS[index]}
-            <span className="lives" aria-label={`${lives} of ${LIVES} lives left`}>
-              {Array.from({ length: LIVES }, (_, i) => <span key={i} className={i < lives ? 'on' : ''} />)}
+            <span className="tries" aria-label={`${left} of ${TRIES} tries left`}>
+              {Array.from({ length: TRIES }, (_, i) => <span key={i} className={i < left ? 'on' : ''} />)}
             </span>
           </>
         )}
@@ -171,7 +171,7 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
 
       <footer className="strip">
         {failing ? (
-          <SolutionLine g={g} title="Out of lives" />
+          <SolutionLine g={g} title="Out of tries" />
         ) : ended ? (
           <>
             <SolutionLine g={g} title={final ? `Climbed ${final.n}/${LADDER_SIZE}` : ''} />

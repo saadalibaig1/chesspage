@@ -3,7 +3,7 @@ import { Icon } from './Icon';
 import { Sheet } from './Sheet';
 import { ALL_COUNTRIES, countryName, flag } from '../lib/country';
 import { ranked, simulatedRows, withPlayer, type Metric } from '../lib/leaderboard';
-import { ladderStats, LIVES, shareText, type DayResult } from '../lib/results';
+import { ladderStats, shareText, TRIES, type DayResult } from '../lib/results';
 import { LADDER_SIZE, LEVELS, msUntilMidnight, TIMER_LEVEL } from '../lib/daily';
 import { shareOrCopy } from '../lib/share';
 import type { Settings, Store } from '../lib/storage';
@@ -32,8 +32,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         <ul>
           <li>Find the best move. Drag or tap a piece to play it.</li>
           <li>Each puzzle is harder than the last, from {LEVELS[0]} to {LEVELS[LADDER_SIZE - 1]}.</li>
-          <li>You have {LIVES} lives for the whole ladder. A wrong move costs a life. The same wrong move again is free.</li>
-          <li>Out of lives? The climb ends and the solution plays.</li>
+          <li>You get {TRIES} tries on each puzzle. A wrong move uses a try. The same wrong move again is free.</li>
+          <li>Out of tries? The climb ends and the solution plays.</li>
         </ul>
         <h4>Examples</h4>
         <div className="demo-row">{[1, 2, 3, 4, 5, 6].map((n) => <Tile key={n} c="solved">{String(n)}</Tile>)}</div>
@@ -41,7 +41,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         <div className="demo-row">
           <Tile c="solved">1</Tile><Tile c="solved">2</Tile><Tile c="solved">3</Tile><Tile c="failed">4</Tile><Tile>5</Tile><Tile>6</Tile>
         </div>
-        <p className="small">Out of lives on puzzle 4: <b>3/6</b>.</p>
+        <p className="small">Out of tries on puzzle 4: <b>3/6</b>.</p>
         <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Turn hints off with Hard Mode.</p>
         <hr />
         <p className="small"><b>Practice:</b> pick a level from {LEVELS[0]} to {LEVELS.at(-1)}. A quick, clean solve moves you up. Not counted.</p>

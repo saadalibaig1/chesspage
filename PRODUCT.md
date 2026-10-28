@@ -16,7 +16,7 @@ Chess enthusiasts who want a short daily ritual: open the page once a day, spend
 
 ## Product Purpose
 
-ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone climbs the same ladder of six puzzles, from 1000 to 2000 rating, with three lives for the whole climb. Most people reach 1–3, some 4–5, and few all six. There is no time limit. Once the day's ladder is done, it cannot be replayed until tomorrow. Practice (pick a level, 1000–2200) is unranked. Timer is one 1600 puzzle a day, the same for everyone, against a 1-minute clock. Success is a habit: people return daily and keep their streak alive.
+ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone climbs the same ladder of six puzzles, from 1000 to 2000 rating, with six tries on each puzzle. Most people reach 1–3, some 4–5, and few all six. There is no time limit. Once the day's ladder is done, it cannot be replayed until tomorrow. Practice (pick a level, 1000–2200) is unranked. Timer is one 1600 puzzle a day, the same for everyone, against a 1-minute clock. Success is a habit: people return daily and keep their streak alive.
 
 ## Positioning
 
@@ -28,7 +28,7 @@ Finite, shared and social, where chess.com and Lichess puzzles are endless solo 
 - A testing toggle can generate a fresh puzzle and bypass the lock.
 - Intro popup on first visit explains the rules, as Wordle does. A success popup congratulates on completion.
 - The share result is plain text plus emoji (Wordle-style) to copy and paste into Slack, chat or social posts.
-- A wrong move costs a life; repeating the same wrong move does not. Out of lives ends the climb: the solution plays out with arrows, and the idea and the full solution are shown. A two-step hint (the piece, then its path) is available unless Hard Mode is on.
+- A wrong move uses one of the puzzle's six tries; repeating the same wrong move does not. Out of tries ends the climb: the solution plays out with arrows, and the idea and the full solution are shown. A two-step hint (the piece, then its path) is available unless Hard Mode is on.
 
 ## Capabilities and Constraints
 
