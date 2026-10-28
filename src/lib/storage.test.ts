@@ -8,8 +8,8 @@ beforeEach(() => {
   (globalThis as any).localStorage = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => m.set(k, v) };
 });
 
-test('defaults: ladder mode, first practice level, no timer best', () => {
-  expect(load()).toMatchObject({ introSeen: false, mode: 'ladder', settings: DEFAULT_SETTINGS, ladder: { history: {} }, practice: { level: 0 }, timer: { history: {} } });
+test('defaults: ladder mode, empty histories', () => {
+  expect(load()).toEqual({ introSeen: false, mode: 'ladder', settings: DEFAULT_SETTINGS, ladder: { history: {} }, timer: { history: {} } });
 });
 
 test('save/load round-trips', () => {
@@ -59,4 +59,11 @@ test('loadIfAvailable returns null when storage is blocked or empty', () => {
   expect(loadIfAvailable()?.introSeen).toBe(true);
   (globalThis as any).localStorage = { getItem: () => { throw new Error('denied'); } };
   expect(loadIfAvailable()).toBeNull();
+});
+
+test('a saved Practice mode (now removed) opens Daily, and its data is dropped', () => {
+  localStorage.setItem('chesspage:v3', JSON.stringify({ introSeen: true, mode: 'practice', practice: { level: 3 } }));
+  const s = load();
+  expect(s.mode).toBe('ladder');
+  expect(s).not.toHaveProperty('practice');
 });

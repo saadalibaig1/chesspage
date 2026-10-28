@@ -37,12 +37,11 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         </ul>
         <h4>Example</h4>
         <div className="demo-row">
-          <Tile c="solved">1</Tile><Tile c="solved">2</Tile><Tile c="failed">3</Tile><Tile>4</Tile><Tile c="solved">5</Tile><Tile>6</Tile>
+          {LEVELS.slice(0, LADDER_SIZE).map((r, i) => <Tile key={r} c={['solved', 'solved', 'failed', '', 'solved', ''][i] || undefined}>{String(r)}</Tile>)}
         </div>
-        <p className="small">Played levels 1, 2, 3 and 5; solved three: <b>3/4</b>.</p>
+        <p className="small">Played four levels and solved three: <b>3/4</b>.</p>
         <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Turn hints off with Hard Mode.</p>
         <hr />
-        <p className="small"><b>Practice:</b> pick a level from {LEVELS[0]} to {LEVELS.at(-1)}. A quick, clean solve moves you up. Not counted.</p>
         <p className="small"><b>Timer:</b> one {LEVELS[TIMER_LEVEL]} puzzle a day, the same for everyone. Solve it in under a minute.</p>
         <hr />
         <p className="small muted">New levels arrive every day at midnight. Everyone gets the same ones.</p>

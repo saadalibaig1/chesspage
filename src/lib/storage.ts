@@ -12,12 +12,12 @@ export type Store = {
   country?: string;
   settings: Settings;
   ladder: { history: Record<string, DayResult>; progress?: Progress };
-  practice: { level: number };
   /** progress = a run in play: time used and wrong moves so far, so a reload resumes the clock. */
   timer: { history: Record<string, TimerResult>; progress?: { date: string; elapsed: number; tried?: string[] } };
 };
 
 const KEY = 'chesspage:v3';
+const MODES: Mode[] = ['ladder', 'timer'];
 export const DEFAULT_SETTINGS: Settings = { hard: false, contrast: false, sound: true, coords: true, testMode: false };
 
 const fresh = (): Store => ({
@@ -25,7 +25,6 @@ const fresh = (): Store => ({
   mode: 'ladder',
   settings: { ...DEFAULT_SETTINGS },
   ladder: { history: {} },
-  practice: { level: 0 },
   timer: { history: {} },
 });
 
@@ -38,10 +37,11 @@ export function load(): Store {
     const ladder = { ...base.ladder, ...s.ladder };
     // Progress from the old in-order ladder (it has an index) is dropped.
     return {
-      ...base, ...s,
+      introSeen: s.introSeen ?? base.introSeen,
+      mode: MODES.includes(s.mode) ? s.mode : base.mode, // a removed mode (Practice) falls back to Daily
+      ...(s.country && { country: s.country }),
       settings: { ...base.settings, ...s.settings },
       ladder: { history: migrate(ladder.history), ...(ladder.progress && !('index' in ladder.progress) && { progress: ladder.progress }) },
-      practice: { ...base.practice, ...s.practice },
       timer: { ...base.timer, ...s.timer },
     };
   } catch {

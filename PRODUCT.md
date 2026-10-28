@@ -16,7 +16,7 @@ Chess enthusiasts who want a short daily ritual: open the page once a day, spend
 
 ## Product Purpose
 
-ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone gets the same six levels, from 1000 to 2000 rating. Players pick any levels, in any order, with five tries on each. Most solve 1–3, some 4–5, and few all six. There is no time limit. A finished level cannot be replayed until tomorrow; unplayed levels stay open until midnight. Practice (pick a level, 1000–2200) is unranked. Timer is one 1600 puzzle a day, the same for everyone, against a 1-minute clock. Success is a habit: people return daily and keep their streak alive.
+ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone gets the same six levels, from 1000 to 2000 rating. Players pick any levels, in any order, with five tries on each. Most solve 1–3, some 4–5, and few all six. There is no time limit. A finished level cannot be replayed until tomorrow; unplayed levels stay open until midnight. Timer is one 1600 puzzle a day, the same for everyone, against a 1-minute clock. Success is a habit: people return daily and keep their streak alive.
 
 ## Positioning
 

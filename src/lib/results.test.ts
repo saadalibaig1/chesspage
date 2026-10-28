@@ -1,5 +1,5 @@
 import {
-  emptyDay, formatTime, ladderStats, levelWord, practiceNext, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, withLevel,
+  emptyDay, formatTime, ladderStats, levelWord, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, withLevel,
   type DayResult, type LevelResult,
 } from './results';
 
@@ -57,13 +57,6 @@ test('Timer: one minute, share shows the solve time or X', () => {
   expect(timerShareText(12, { solved: true, ms: 38_400 })).toBe('ChessPage Timer 12\n⏱️ 0:38');
   expect(timerShareText(12, { solved: false, ms: 60_000 })).toBe('ChessPage Timer 12\n⏱️ X');
   expect(timerShareText(12, { solved: true, ms: 9_000 }, true)).toBe('ChessPage Timer test\n⏱️ 0:09');
-});
-
-test('Practice levels up after a quick, clean solve', () => {
-  expect(practiceNext(2, 9000, true)).toBe(3);
-  expect(practiceNext(2, 9000, false)).toBe(2); // a miss or hint
-  expect(practiceNext(2, 30000, true)).toBe(2); // too slow
-  expect(practiceNext(6, 5000, true)).toBe(6); // top level
 });
 
 test('formatTime', () => {

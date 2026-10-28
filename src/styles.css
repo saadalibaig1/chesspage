@@ -243,8 +243,16 @@ button {
 .tile.solved { background: var(--green); }
 .tile.failed { background: var(--red); }
 
-/* Daily: the tiles are buttons, so any level can be picked. */
+/* Daily: the tiles are buttons labelled with their rating, so any level can be picked. */
+.tiles.pick {
+  height: 44px;
+}
+
 .tiles.pick .tile {
+  width: 50px;
+  height: 44px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
   padding: 0;
   border-radius: 0;
   font-family: inherit;
@@ -321,7 +329,7 @@ button {
   background: var(--text);
 }
 
-/* Practice level picker and Timer clock share the tiles' row. */
+/* Timer's clock shares the tiles' row. */
 .topline {
   flex: none;
   display: flex;
@@ -330,31 +338,6 @@ button {
   gap: 16px;
   margin-top: auto;
   height: 40px;
-}
-
-.level {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.level select {
-  height: 40px;
-  padding: 0 32px 0 14px;
-  border: 2px solid var(--line);
-  border-radius: 4px;
-  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23121213' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center;
-  appearance: none;
-  color: var(--text);
-  font-size: 18px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
 }
 
 .clock {
@@ -825,9 +808,9 @@ button {
 }
 
 .tile.demo {
-  width: 36px;
+  width: 44px;
   height: 36px;
-  font-size: 18px;
+  font-size: 13px;
 }
 
 /* Stats */

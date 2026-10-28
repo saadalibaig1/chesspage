@@ -1,6 +1,6 @@
 import { LADDER_SIZE, LEVELS } from './daily';
 
-export type Mode = 'ladder' | 'practice' | 'timer';
+export type Mode = 'ladder' | 'timer';
 /** One level of the day. failed = used all its tries. */
 export type LevelResult = { mistakes: number; hinted: boolean; failed: boolean; timeMs: number };
 /** The day so far: one entry per ladder level (null = not played yet). n = levels solved. */
@@ -11,7 +11,6 @@ export type TimerResult = { solved: boolean; ms: number };
 /** Tries per ladder level. Each wrong move uses one; the same wrong move again is free. */
 export const TRIES = 5;
 export const TIMER_MS = 60_000;
-const QUICK_MS = 15_000;
 
 export const emptyDay = (): DayResult => ({ n: 0, levels: Array(LADDER_SIZE).fill(null) });
 
@@ -78,11 +77,6 @@ export function ladderStats(history: Record<string, DayResult>, today: string): 
 
 export const timerShareText = (day: number, r: TimerResult, test = false) =>
   `ChessPage Timer ${test ? 'test' : day}\n⏱️ ${r.solved ? formatTime(r.ms) : 'X'}`;
-
-/** Practice moves up a level after a quick solve with no miss or hint. */
-export function practiceNext(level: number, timeMs: number, clean: boolean): number {
-  return clean && timeMs < QUICK_MS ? Math.min(LEVELS.length - 1, level + 1) : level;
-}
 
 export function formatTime(ms: number): string {
   const s = Math.floor(ms / 1000);

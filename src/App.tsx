@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Ladder } from './components/Ladder';
-import { Practice } from './components/Practice';
 import { TimerMode } from './components/TimerMode';
 import { Icon } from './components/Icon';
 import { PieceSprite } from './components/pieces';
@@ -14,7 +13,7 @@ import { setSoundEnabled, unlockAudio } from './lib/sound';
 type Modal = null | 'help' | 'stats' | 'leaderboard' | 'settings';
 type Toast = { id: number; text: string };
 
-const MODES: [Mode, string][] = [['ladder', 'Daily'], ['practice', 'Practice'], ['timer', 'Timer']];
+const MODES: [Mode, string][] = [['ladder', 'Daily'], ['timer', 'Timer']];
 
 export default function App() {
   const [store, setStore] = useState<Store>(load);
@@ -143,7 +142,7 @@ export default function App() {
         ))}
       </nav>
 
-      {test && mode !== 'practice' && (
+      {test && (
         <button type="button" className="chip" onClick={() => setTestNonce((n) => n + 1)} aria-label={`Test mode: deal a new random ${mode === 'ladder' ? 'ladder' : 'puzzle'}`}>
           Test · New {mode === 'ladder' ? 'ladder' : 'puzzle'}
         </button>
@@ -164,8 +163,6 @@ export default function App() {
             <p>Loading puzzles…</p>
           )}
         </div>
-      ) : mode === 'practice' ? (
-        <Practice key="practice" pool={pool} store={store} update={update} paused={modal !== null} toast={toast} />
       ) : mode === 'timer' ? (
         <TimerMode key={`timer-${today}-${test}-${testNonce}`} puzzle={timerPuzzle!} today={today} day={dayNumber(today)}
           store={store} update={update} test={test} paused={modal !== null} toast={toast} />

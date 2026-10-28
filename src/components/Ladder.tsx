@@ -133,7 +133,7 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
               aria-label={`Level ${LEVELS[i]}: ${o ?? (current[i] ? 'in play' : 'not played')}`}
               onClick={() => i !== sel && open(i)}
             >
-              {i + 1}
+              {LEVELS[i]}
             </button>
           );
         })}
