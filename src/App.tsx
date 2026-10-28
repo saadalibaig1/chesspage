@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Game } from './components/Game';
+import { Ladder } from './components/Ladder';
+import { Practice } from './components/Practice';
+import { TimerMode } from './components/TimerMode';
 import { Icon } from './components/Icon';
 import { PieceSprite } from './components/pieces';
 import { HelpModal, LeaderboardModal, SettingsModal, StatsModal } from './components/Modals';
-import { dailySet, dailySolo, dayNumber, localDateKey, msUntilMidnight, randomSet, type Pool, type Puzzle } from './lib/daily';
+import { dailyLadder, dayNumber, localDateKey, msUntilMidnight, randomLadder, type Pool, type Puzzle } from './lib/daily';
 import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { detectCountry } from './lib/country';
@@ -12,8 +14,7 @@ import { setSoundEnabled, unlockAudio } from './lib/sound';
 type Modal = null | 'help' | 'stats' | 'leaderboard' | 'settings';
 type Toast = { id: number; text: string };
 
-// Daily 5 is parked for now (client direction); its logic stays in Game for later.
-const MODE: Mode = 'solo';
+const MODES: [Mode, string][] = [['ladder', 'Daily'], ['practice', 'Practice'], ['timer', 'Timer']];
 
 export default function App() {
   const [store, setStore] = useState<Store>(load);
@@ -23,10 +24,10 @@ export default function App() {
   const [loadTry, setLoadTry] = useState(0);
   const [testNonce, setTestNonce] = useState(0);
   const [modal, setModal] = useState<Modal>(store.introSeen ? null : 'help');
-  const [lastResult, setLastResult] = useState<{ mode: Mode; r: DayResult } | null>(null);
+  const [lastResult, setLastResult] = useState<DayResult | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const mode = MODE;
+  const mode = store.mode;
   const test = store.settings.testMode;
   const country = store.country ?? detectCountry();
 
@@ -81,13 +82,12 @@ export default function App() {
     return () => events.forEach((e) => document.removeEventListener(e, unlockAudio, { capture: true }));
   }, []);
 
-  const set: Puzzle[] | null = useMemo(() => {
+  const ladder: Puzzle[] | null = useMemo(() => {
     if (!pool) return null;
-    if (!test) return mode === 'five' ? dailySet(today, pool) : [dailySolo(today, pool)];
-    const random = randomSet(pool);
-    return mode === 'five' ? random : [random[3]];
-    // testNonce deals a fresh random set
-  }, [pool, mode, today, test, testNonce]);
+    return test ? randomLadder(pool) : dailyLadder(today, pool);
+    // testNonce deals a fresh random ladder
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pool, today, test, testNonce]);
 
   function onSetting(k: keyof Settings, v: boolean) {
     update((s) => ({ ...s, settings: { ...s.settings, [k]: v } }));
@@ -101,9 +101,10 @@ export default function App() {
   }, [update]);
 
   const onComplete = useCallback((r: DayResult) => {
-    setLastResult({ mode, r });
+    setLastResult(r);
     setModal('stats');
-  }, [mode]);
+  }, []);
+  const toModal = useCallback((m: Modal) => () => setModal(m), []);
 
   return (
     <div className="app">
@@ -128,9 +129,18 @@ export default function App() {
         </div>
       </header>
 
-      {test && (
-        <button type="button" className="chip" onClick={() => setTestNonce((n) => n + 1)} aria-label="Test mode: deal a new random puzzle">
-          Test · New puzzle
+      <nav className="modes" role="tablist" aria-label="Mode">
+        {MODES.map(([m, label]) => (
+          <button key={m} type="button" role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''}
+            onClick={() => update((s) => ({ ...s, mode: m }))}>
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      {test && mode === 'ladder' && (
+        <button type="button" className="chip" onClick={() => setTestNonce((n) => n + 1)} aria-label="Test mode: deal a new random ladder">
+          Test · New ladder
         </button>
       )}
 
@@ -138,21 +148,7 @@ export default function App() {
         {toasts.map((t) => <div key={t.id} className="toast">{t.text}</div>)}
       </div>
 
-      {set ? (
-        <Game
-          key={`${mode}-${today}-${test}-${testNonce}`}
-          mode={mode}
-          set={set}
-          today={today}
-          store={store}
-          update={update}
-          test={test}
-          paused={modal !== null}
-          toast={toast}
-          onComplete={onComplete}
-          onShowStats={() => setModal('stats')}
-        />
-      ) : (
+      {!pool ? (
         <div className="loading">
           {loadFailed ? (
             <>
@@ -163,23 +159,39 @@ export default function App() {
             <p>Loading puzzles…</p>
           )}
         </div>
+      ) : mode === 'practice' ? (
+        <Practice key="practice" pool={pool} store={store} update={update} paused={modal !== null} toast={toast} />
+      ) : mode === 'timer' ? (
+        <TimerMode key="timer" pool={pool} store={store} update={update} paused={modal !== null} toast={toast} />
+      ) : (
+        <Ladder
+          key={`${today}-${test}-${testNonce}`}
+          set={ladder!}
+          today={today}
+          store={store}
+          update={update}
+          test={test}
+          paused={modal !== null}
+          toast={toast}
+          onComplete={onComplete}
+          onShowStats={toModal('stats')}
+        />
       )}
 
       {modal === 'help' && <HelpModal onClose={closeHelp} />}
       {modal === 'stats' && (
         <StatsModal
-          mode={mode}
           store={store}
           today={today}
           day={dayNumber(today)}
-          result={lastResult?.mode === mode && test ? lastResult.r : null}
+          result={test ? lastResult : null}
           test={test}
           onClose={closeModal}
           onLeaderboard={() => setModal('leaderboard')}
         />
       )}
       {modal === 'leaderboard' && (
-        <LeaderboardModal mode={mode} date={today} country={country} store={store}
+        <LeaderboardModal date={today} country={country} store={store}
           onCountry={(iso) => update((s) => ({ ...s, country: iso }))} onClose={closeModal} />
       )}
       {modal === 'settings' && <SettingsModal settings={store.settings} onSetting={onSetting} onClose={closeModal} />}

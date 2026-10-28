@@ -1,92 +1,85 @@
-export type Mode = 'five' | 'solo';
-export type Outcome = 'clean' | 'messy' | 'revealed' | 'miss';
-export type PuzzleResult = { band: number; timeMs: number; mistakes: number; hinted: boolean; revealed: boolean };
-/** n = puzzles solved (Daily 5) or tries used (Solo). */
-export type DayResult = { won: boolean; n: number; grid: Outcome[]; timeMs: number };
+import { LADDER_SIZE, LEVELS } from './daily';
 
-export const MAX_TRIES = 6;
+export type Mode = 'ladder' | 'practice' | 'timer';
+export type Outcome = 'solved' | 'failed';
+/** One ladder step. failed = ran out of lives on it. */
+export type PuzzleResult = { level: number; timeMs: number; mistakes: number; hinted: boolean; failed: boolean };
+/** A finished day: n = puzzles solved (how high you climbed). */
+export type DayResult = { n: number; grid: Outcome[]; hinted: boolean; timeMs: number };
 
-export function outcomeOf(r: PuzzleResult): Outcome {
-  if (r.revealed) return 'revealed';
-  return r.mistakes || r.hinted ? 'messy' : 'clean';
+export const LIVES = 3;
+export const TIMER_MS = 180_000;
+export const STRIKES = 3;
+const QUICK_MS = 15_000;
+
+export function ladderResult(results: PuzzleResult[]): DayResult {
+  return {
+    n: results.filter((r) => !r.failed).length,
+    grid: results.map((r) => (r.failed ? 'failed' : 'solved')),
+    hinted: results.some((r) => r.hinted),
+    timeMs: results.reduce((t, r) => t + r.timeMs, 0),
+  };
 }
 
-export function fiveResult(results: PuzzleResult[]): DayResult {
-  const n = results.filter((r) => !r.revealed).length;
-  return { won: n === results.length, n, grid: results.map(outcomeOf), timeMs: results.reduce((t, r) => t + r.timeMs, 0) };
+export function livesLeft(results: PuzzleResult[], currentMistakes: number): number {
+  return Math.max(0, LIVES - results.reduce((t, r) => t + r.mistakes, 0) - currentMistakes);
 }
 
-export function soloResult(misses: number, solved: boolean, timeMs: number, hinted = false): DayResult {
-  const last: Outcome = hinted ? 'messy' : 'clean';
-  const grid: Outcome[] = [...Array(Math.min(misses, MAX_TRIES)).fill('miss'), ...(solved ? [last] : [])];
-  return { won: solved, n: solved ? misses + 1 : MAX_TRIES, grid, timeMs };
+const EMOJI: Record<Outcome, string> = { solved: '🟩', failed: '🟥' };
+
+export function shareText(day: number, r: DayResult, test = false): string {
+  const head = `ChessPage ${test ? 'test' : day} ${r.n}/${LADDER_SIZE}${r.hinted ? ' 💡' : ''}`;
+  const squares = Array.from({ length: LADDER_SIZE }, (_, i) => (r.grid[i] ? EMOJI[r.grid[i]] : '⬜'));
+  return `${head}\n${squares.join('')}`;
 }
 
-const EMOJI: Record<Mode, Record<Outcome, string>> = {
-  five: { clean: '🟩', messy: '🟨', revealed: '🟥', miss: '⬜' },
-  // Solo: a pawn per miss, a crown for the solve (hinted or not; a hint shows as 💡).
-  // The pawn carries U+FE0F so it renders as an emoji, not a text glyph.
-  solo: { clean: '👑', messy: '👑', revealed: '🟥', miss: '♟️' },
-};
-
-export function shareText(mode: Mode, day: number, r: DayResult, test = false): string {
-  const label = test ? 'test' : String(day);
-  const hinted = mode === 'solo' && r.grid.at(-1) === 'messy' ? ' 💡' : '';
-  const head = mode === 'five' ? `ChessPage ${label} ${r.n}/5` : `ChessPage ${label} ${r.won ? r.n : 'X'}/${MAX_TRIES}${hinted}`;
-  return `${head}\n${r.grid.map((o) => EMOJI[mode][o]).join('')}`;
-}
-
-const SOLO_WORDS = ['Genius', 'Magnificent', 'Impressive', 'Splendid', 'Great', 'Phew'];
-const FIVE_WORDS = ['Better luck tomorrow', 'Better luck tomorrow', 'Not bad', 'Nice', 'Great', 'Magnificent'];
-
-export function winWord(mode: Mode, r: DayResult): string {
-  if (mode === 'solo') {
-    if (!r.won) return 'Better luck tomorrow';
-    return r.grid.at(-1) === 'messy' ? 'Solved' : SOLO_WORDS[r.n - 1]; // no "Genius" for a hinted solve
-  }
-  return FIVE_WORDS[r.n];
-}
+const WORDS = ['Better luck tomorrow', 'Good start', 'Nice', 'Great', 'Impressive', 'Magnificent', 'Genius'];
+export const winWord = (r: DayResult) => WORDS[r.n];
 
 function prevDay(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10);
 }
 
-export type Stats = { played: number; winPct: number; current: number; max: number; dist: number[]; labels: string[]; today: number | null };
+export type Stats = { played: number; avg: number; current: number; max: number; dist: number[]; today: number | null };
 
-export function stats(mode: Mode, history: Record<string, DayResult>, today: string): Stats {
+/** The streak counts consecutive days played, whatever the score. */
+export function ladderStats(history: Record<string, DayResult>, today: string): Stats {
   const days = Object.keys(history).sort();
-  const wins = days.filter((d) => history[d].won).length;
 
   let current = 0;
-  for (let d = history[today] ? today : prevDay(today); history[d]?.won; d = prevDay(d)) current++;
+  for (let d = history[today] ? today : prevDay(today); history[d]; d = prevDay(d)) current++;
 
   let max = 0;
   let run = 0;
   let prev = '';
   for (const d of days) {
-    run = history[d].won ? (prev && prevDay(d) === prev && run ? run + 1 : 1) : 0;
+    run = prev && prevDay(d) === prev ? run + 1 : 1;
     max = Math.max(max, run);
     prev = d;
   }
 
-  const labels = mode === 'five' ? ['0', '1', '2', '3', '4', '5'] : ['1', '2', '3', '4', '5', '6'];
-  const dist = labels.map(() => 0);
-  const bucket = (r: DayResult) => (mode === 'five' ? r.n : r.won ? r.n - 1 : -1);
-  for (const d of days) {
-    const b = bucket(history[d]);
-    if (b >= 0) dist[b]++;
-  }
-  const t = history[today];
+  const dist = Array(LADDER_SIZE + 1).fill(0);
+  for (const d of days) dist[history[d].n]++;
+  const total = days.reduce((t, d) => t + history[d].n, 0);
   return {
     played: days.length,
-    winPct: days.length ? Math.round((wins / days.length) * 100) : 0,
+    avg: days.length ? Math.round((total / days.length) * 10) / 10 : 0,
     current,
     max,
     dist,
-    labels,
-    today: t && bucket(t) >= 0 ? Number(labels[bucket(t)]) : null,
+    today: history[today]?.n ?? null,
   };
+}
+
+/** Timer mode starts at the first level and climbs one level every two solves. */
+export const rushLevel = (solved: number) => Math.min(LEVELS.length - 1, Math.floor(solved / 2));
+
+export const timerShareText = (score: number) => `ChessPage Timer\n⏱️ ${score} solved in ${formatTime(TIMER_MS)}`;
+
+/** Practice moves up a level after a quick solve with no miss or hint. */
+export function practiceNext(level: number, timeMs: number, clean: boolean): number {
+  return clean && timeMs < QUICK_MS ? Math.min(LEVELS.length - 1, level + 1) : level;
 }
 
 export function formatTime(ms: number): string {

@@ -1,11 +1,12 @@
-export type Puzzle = { id: string; fen: string; moves: string[]; rating: number; band: number; themes: string };
-/** [id, fen, uci moves, rating, Lichess themes] */
+export type Puzzle = { id: string; fen: string; moves: string[]; rating: number; level: number; themes: string };
+/** One list per level: [id, fen, uci moves, rating, Lichess themes] */
 export type Pool = [string, string, string, number, string?][][];
 
 export const LAUNCH = '2026-10-23';
-export const BAND_NAMES = ['Warm-up', 'Easy', 'Medium', 'Tricky', 'Hard'];
-const STRIDE = [7, 11, 13, 17, 19]; // coprime with 365 → a full cycle without repeats
-const OFFSET = [0, 50, 100, 150, 200];
+/** Puzzle levels (Lichess rating, ±100). The daily ladder climbs the first LADDER_SIZE. */
+export const LEVELS = [1000, 1200, 1400, 1600, 1800, 2000, 2200];
+export const LADDER_SIZE = 6;
+const STRIDE = [7, 11, 13, 17, 19, 23, 29]; // coprime with 365 → a full cycle without repeats
 const DAY_MS = 86_400_000;
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -23,30 +24,27 @@ export function dayNumber(key: string): number {
   return Math.round((utc(key) - utc(LAUNCH)) / DAY_MS) + 1;
 }
 
-const toPuzzle = ([id, fen, moves, rating, themes = '']: Pool[number][number], band: number): Puzzle => ({
-  id, fen, moves: moves.split(' '), rating, band, themes,
+const toPuzzle = ([id, fen, moves, rating, themes = '']: Pool[number][number], level: number): Puzzle => ({
+  id, fen, moves: moves.split(' '), rating, level, themes,
 });
 
-export function dailySet(key: string, pool: Pool): Puzzle[] {
+/** Today's ladder: one puzzle per level, the same for everyone. */
+export function dailyLadder(key: string, pool: Pool): Puzzle[] {
   const day = dayNumber(key) - 1;
-  return pool.map((list, b) => {
+  return pool.slice(0, LADDER_SIZE).map((list, l) => {
     const n = list.length;
-    const i = (((day * STRIDE[b] + OFFSET[b]) % n) + n) % n;
-    return toPuzzle(list[i], b);
+    const i = (((day * STRIDE[l] + l * 50) % n) + n) % n;
+    return toPuzzle(list[i], l);
   });
 }
 
-/** Solo mode: one Tricky puzzle a day, offset half a cycle from Daily 5's Tricky puzzle so they never match. */
-export function dailySolo(key: string, pool: Pool): Puzzle {
-  const list = pool[3];
-  const n = list.length;
-  const day = dayNumber(key) - 1;
-  const i = (((day * STRIDE[3] + OFFSET[3] + Math.floor(n / 2)) % n) + n) % n;
-  return toPuzzle(list[i], 3);
+export function randomPuzzle(pool: Pool, level: number, rand = Math.random): Puzzle {
+  const list = pool[level];
+  return toPuzzle(list[Math.floor(rand() * list.length)], level);
 }
 
-export function randomSet(pool: Pool, rand = Math.random): Puzzle[] {
-  return pool.map((list, b) => toPuzzle(list[Math.floor(rand() * list.length)], b));
+export function randomLadder(pool: Pool, rand = Math.random): Puzzle[] {
+  return Array.from({ length: LADDER_SIZE }, (_, l) => randomPuzzle(pool, l, rand));
 }
 
 export function msUntilMidnight(now = new Date()): number {

@@ -3,8 +3,9 @@ import { Icon } from './Icon';
 import { Sheet } from './Sheet';
 import { ALL_COUNTRIES, countryName, flag } from '../lib/country';
 import { ranked, simulatedRows, withPlayer, type Metric } from '../lib/leaderboard';
-import { shareText, stats, type DayResult, type Mode } from '../lib/results';
-import { msUntilMidnight } from '../lib/daily';
+import { ladderStats, LIVES, shareText, type DayResult } from '../lib/results';
+import { LADDER_SIZE, LEVELS, msUntilMidnight } from '../lib/daily';
+import { shareOrCopy } from '../lib/share';
 import type { Settings, Store } from '../lib/storage';
 
 export function Countdown() {
@@ -27,28 +28,32 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
     <Sheet title="How To Play" onClose={onClose}>
       <div className="help">
         <h2 className="title">How To Play</h2>
-        <p className="lead">Solve the puzzle in 6 tries.</p>
+        <p className="lead">Climb today’s ladder: {LADDER_SIZE} puzzles, easy to hard.</p>
         <ul>
           <li>Find the best move. Drag or tap a piece to play it.</li>
-          <li>Every wrong move uses a try. The opponent replies on their own.</li>
-          <li>Some puzzles take two or three moves. The dots show where you are.</li>
+          <li>Each puzzle is harder than the last, from {LEVELS[0]} to {LEVELS[LADDER_SIZE - 1]}.</li>
+          <li>You have {LIVES} lives for the whole ladder. A wrong move costs a life. The same wrong move again is free.</li>
+          <li>Out of lives? The climb ends and the solution plays.</li>
         </ul>
         <h4>Examples</h4>
-        <div className="demo-row"><Tile c="clean" /><Tile /><Tile /><Tile /><Tile /><Tile /></div>
-        <p className="small">Solved on the first try: <b>1/6</b>.</p>
-        <div className="demo-row"><Tile c="miss" /><Tile c="miss" /><Tile c="clean" /><Tile /><Tile /><Tile /></div>
-        <p className="small">Two wrong moves, then solved: <b>3/6</b>.</p>
-        <div className="demo-row"><Tile c="miss" /><Tile c="messy" /><Tile /><Tile /><Tile /><Tile /></div>
-        <p className="small">Solved with a hint. Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Turn hints off with Hard Mode.</p>
+        <div className="demo-row">{[1, 2, 3, 4, 5, 6].map((n) => <Tile key={n} c="solved">{String(n)}</Tile>)}</div>
+        <p className="small">All six solved: <b>6/6</b>.</p>
+        <div className="demo-row">
+          <Tile c="solved">1</Tile><Tile c="solved">2</Tile><Tile c="solved">3</Tile><Tile c="failed">4</Tile><Tile>5</Tile><Tile>6</Tile>
+        </div>
+        <p className="small">Out of lives on puzzle 4: <b>3/6</b>.</p>
+        <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Turn hints off with Hard Mode.</p>
         <hr />
-        <p className="small muted">A new puzzle arrives every day at midnight. Everyone plays the same one.</p>
+        <p className="small"><b>Practice:</b> pick a level from {LEVELS[0]} to {LEVELS.at(-1)}. A quick, clean solve moves you up. Not counted.</p>
+        <p className="small"><b>Timer:</b> solve as many as you can in 3 minutes. Three misses and you’re out.</p>
+        <hr />
+        <p className="small muted">A new ladder arrives every day at midnight. Everyone climbs the same one.</p>
       </div>
     </Sheet>
   );
 }
 
 type StatsProps = {
-  mode: Mode;
   store: Store;
   today: string;
   day: number;
@@ -58,25 +63,14 @@ type StatsProps = {
   onLeaderboard: () => void;
 };
 
-export function StatsModal({ mode, store, today, day, result, test, onClose, onLeaderboard }: StatsProps) {
-  const s = stats(mode, store[mode].history, today);
-  const shown = result ?? store[mode].history[today] ?? null;
+export function StatsModal({ store, today, day, result, test, onClose, onLeaderboard }: StatsProps) {
+  const s = ladderStats(store.ladder.history, today);
+  const shown = result ?? store.ladder.history[today] ?? null;
   const top = Math.max(1, ...s.dist);
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const text = shareText(mode, day, shown!, test);
-    try {
-      if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ text });
-      else await navigator.clipboard.writeText(text);
-    } catch {
-      const t = document.createElement('textarea');
-      t.value = text;
-      document.body.append(t);
-      t.select();
-      document.execCommand('copy');
-      t.remove();
-    }
+    await shareOrCopy(shareText(day, shown!, test));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
@@ -87,20 +81,20 @@ export function StatsModal({ mode, store, today, day, result, test, onClose, onL
         <h3 className="caps">Statistics</h3>
         <div className="numbers">
           <div><b className="num">{s.played}</b><span>Played</span></div>
-          <div><b className="num">{s.winPct}</b><span>Win %</span></div>
+          <div><b className="num">{s.avg}</b><span>Average</span></div>
           <div><b className="num">{s.current}</b><span>Current Streak</span></div>
           <div><b className="num">{s.max}</b><span>Max Streak</span></div>
         </div>
-        <h3 className="caps">{mode === 'solo' ? 'Guess Distribution' : 'Puzzles Solved'}</h3>
+        <h3 className="caps">Puzzles Solved</h3>
         {s.played === 0 ? (
-          <p className="center muted small">No data yet. Play today’s puzzle!</p>
+          <p className="center muted small">No data yet. Climb today’s ladder!</p>
         ) : (
           <ol className="dist">
-            {s.labels.map((label, i) => (
-              <li key={label}>
-                <span className="num">{label}</span>
-                <span className={`bar${s.today === Number(label) ? ' today' : ''}`} style={{ width: `${Math.max(7, (s.dist[i] / top) * 100)}%` }}>
-                  <b className="num">{s.dist[i]}</b>
+            {s.dist.map((count, i) => (
+              <li key={i}>
+                <span className="num">{i}</span>
+                <span className={`bar${s.today === i ? ' today' : ''}`} style={{ width: `${Math.max(7, (count / top) * 100)}%` }}>
+                  <b className="num">{count}</b>
                 </span>
               </li>
             ))}
@@ -109,7 +103,7 @@ export function StatsModal({ mode, store, today, day, result, test, onClose, onL
         {shown && (
           <div className="post">
             <div className="next">
-              <h3 className="caps">Next puzzle</h3>
+              <h3 className="caps">Next ladder</h3>
               <span className="clock"><Countdown /></span>
             </div>
             <div className="divider" />
@@ -125,16 +119,16 @@ export function StatsModal({ mode, store, today, day, result, test, onClose, onL
   );
 }
 
-type BoardProps = { mode: Mode; date: string; country: string; store: Store; onCountry: (iso: string) => void; onClose: () => void };
+type BoardProps = { date: string; country: string; store: Store; onCountry: (iso: string) => void; onClose: () => void };
 
-export function LeaderboardModal({ mode, date, country, store, onCountry, onClose }: BoardProps) {
-  const [metric, setMetric] = useState<Metric>('win');
-  const today = store[mode].history[date] ?? null;
-  const streak = stats(mode, store[mode].history, date).current;
-  const rows = ranked(withPlayer(simulatedRows(date, mode), country, today, streak), metric, mode);
+export function LeaderboardModal({ date, country, store, onCountry, onClose }: BoardProps) {
+  const [metric, setMetric] = useState<Metric>('avg');
+  const today = store.ladder.history[date] ?? null;
+  const streak = ladderStats(store.ladder.history, date).current;
+  const rows = ranked(withPlayer(simulatedRows(date), country, today, streak), metric);
   const value = (r: (typeof rows)[number]) =>
-    metric === 'win' ? `${r.winPct}%` : metric === 'avg' ? (r.avg ? r.avg.toFixed(1) : '—') : `${r.longestStreak}`;
-  const tabs: [Metric, string][] = [['win', 'Win %'], ['avg', mode === 'solo' ? 'Avg tries' : 'Avg solved'], ['streak', 'Streak']];
+    metric === 'avg' ? (r.avg ? r.avg.toFixed(1) : '—') : metric === 'full' ? `${r.fullPct}%` : `${r.longestStreak}`;
+  const tabs: [Metric, string][] = [['avg', 'Avg solved'], ['full', 'All six'], ['streak', 'Streak']];
   const mine = rows.findIndex((r) => r.you) + 1;
 
   return (
@@ -169,7 +163,7 @@ export function LeaderboardModal({ mode, date, country, store, onCountry, onClos
           ))}
         </select>
       </label>
-      <p className="muted small">Prototype: simulated data. {today ? 'Your result is counted in your country.' : 'Finish today’s puzzle to add your result.'}</p>
+      <p className="muted small">Prototype: simulated data. {today ? 'Your result is counted in your country.' : 'Finish today’s ladder to add your result.'}</p>
     </Sheet>
   );
 }
@@ -182,7 +176,7 @@ export function SettingsModal({ settings, onSetting, onClose }: SettingsProps) {
     ['contrast', 'High Contrast Mode', 'For improved color vision'],
     ['sound', 'Sound', 'Move and result sounds'],
     ['coords', 'Coordinates', 'Files and ranks on the board'],
-    ['testMode', 'Test Mode', 'Unlimited random puzzles, not counted'],
+    ['testMode', 'Test Mode', 'Daily: unlimited random ladders, not counted'],
   ];
   return (
     <Sheet title="Settings" onClose={onClose}>

@@ -16,38 +16,36 @@ test('flag and name', () => {
   expect(countryName('PK')).toBe('Pakistan');
 });
 
-test('simulatedRows is stable per day and mode', () => {
-  const a = simulatedRows('2026-10-23', 'five');
-  expect(a).toEqual(simulatedRows('2026-10-23', 'five'));
-  expect(a).not.toEqual(simulatedRows('2026-10-24', 'five'));
-  expect(a).not.toEqual(simulatedRows('2026-10-23', 'solo'));
+test('simulatedRows is stable per day', () => {
+  const a = simulatedRows('2026-10-23');
+  expect(a).toEqual(simulatedRows('2026-10-23'));
+  expect(a).not.toEqual(simulatedRows('2026-10-24'));
   expect(a.map((r) => r.iso)).toEqual(COUNTRIES);
   for (const r of a) {
-    expect(r.winPct).toBeGreaterThanOrEqual(0);
-    expect(r.winPct).toBeLessThanOrEqual(100);
+    expect(r.fullPct).toBeGreaterThanOrEqual(0);
+    expect(r.fullPct).toBeLessThanOrEqual(100);
     expect(r.avg).toBeGreaterThan(0);
-    expect(r.avg).toBeLessThanOrEqual(5);
+    expect(r.avg).toBeLessThanOrEqual(6);
   }
 });
 
 test('withPlayer folds the player into their country', () => {
-  const rows = simulatedRows('2026-10-23', 'solo');
+  const rows = simulatedRows('2026-10-23');
   const pk = rows.find((r) => r.iso === 'PK')!;
-  const me = withPlayer(rows, 'PK', { won: true, n: 2, grid: [], timeMs: 1 }, 999).find((r) => r.iso === 'PK')!;
+  const me = withPlayer(rows, 'PK', { n: 6, grid: [], hinted: false, timeMs: 1 }, 999).find((r) => r.iso === 'PK')!;
   expect(me).toMatchObject({ you: true, players: pk.players + 1, longestStreak: 999 });
-  expect(me.winPct).toBeGreaterThanOrEqual(pk.winPct);
+  expect(me.fullPct).toBeGreaterThanOrEqual(pk.fullPct);
+  expect(me.avg).toBeGreaterThanOrEqual(pk.avg);
   expect(withPlayer(rows, 'PK', null, 0).find((r) => r.iso === 'PK')).toMatchObject({ you: true, players: pk.players });
   expect(withPlayer(rows, 'IS', null, 0).at(-1)).toMatchObject({ iso: 'IS', you: true, players: 0 });
 });
 
-test('ranked: win and streak descending; avg depends on mode', () => {
-  const rows = simulatedRows('2026-10-23', 'five');
-  const w = ranked(rows, 'win', 'five');
-  expect(w[0].winPct).toBeGreaterThanOrEqual(w[1].winPct);
-  const five = ranked(rows, 'avg', 'five');
-  expect(five[0].avg).toBeGreaterThanOrEqual(five[1].avg); // more solved = better
-  const solo = ranked(simulatedRows('2026-10-23', 'solo'), 'avg', 'solo');
-  expect(solo[0].avg).toBeLessThanOrEqual(solo[1].avg); // fewer tries = better
+test('ranked: every metric descending', () => {
+  const rows = simulatedRows('2026-10-23');
+  for (const [m, k] of [['avg', 'avg'], ['full', 'fullPct'], ['streak', 'longestStreak']] as const) {
+    const r = ranked(rows, m);
+    expect(r[0][k]).toBeGreaterThanOrEqual(r[1][k]);
+  }
 });
 
 test('detectCountry reads the region from any position in the language tag', () => {

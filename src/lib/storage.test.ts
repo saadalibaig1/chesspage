@@ -1,20 +1,25 @@
 import { DEFAULT_SETTINGS, load, loadIfAvailable, loadProgress, recordDay, save } from './storage';
 import type { DayResult } from './results';
 
-const day: DayResult = { won: true, n: 5, grid: [], timeMs: 1 };
+const day: DayResult = { n: 4, grid: [], hinted: false, timeMs: 1 };
 
 beforeEach(() => {
   const m = new Map<string, string>();
   (globalThis as any).localStorage = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => m.set(k, v) };
 });
 
-test('save/load round-trips per mode', () => {
+test('defaults: ladder mode, first practice level, no timer best', () => {
+  expect(load()).toMatchObject({ introSeen: false, mode: 'ladder', settings: DEFAULT_SETTINGS, ladder: { history: {} }, practice: { level: 0 }, timer: { best: 0 } });
+});
+
+test('save/load round-trips', () => {
   const s = load();
-  expect(s.settings).toEqual(DEFAULT_SETTINGS);
   s.introSeen = true;
-  s.five.history['2026-10-23'] = day;
+  s.mode = 'timer';
+  s.ladder.history['2026-10-23'] = day;
+  s.timer.best = 12;
   save(s);
-  expect(load()).toMatchObject({ introSeen: true, five: { history: { '2026-10-23': day } }, solo: { history: {} } });
+  expect(load()).toMatchObject({ introSeen: true, mode: 'timer', ladder: { history: { '2026-10-23': day } }, timer: { best: 12 } });
 });
 
 test('load returns default when localStorage throws', () => {
@@ -23,23 +28,21 @@ test('load returns default when localStorage throws', () => {
   expect(() => save(load())).not.toThrow();
 });
 
-test('loadProgress ignores other dates and keeps current penalties', () => {
+test('loadProgress ignores other dates and keeps the current step', () => {
   const s = load();
-  s.solo.progress = { date: '2026-10-22', index: 0, results: [] };
-  expect(loadProgress(s, 'solo', '2026-10-23')).toEqual({ date: '2026-10-23', index: 0, results: [] });
-  s.five.progress = { date: '2026-10-23', index: 2, results: [], current: { mistakes: 2, hinted: true, revealed: false } };
-  expect(loadProgress(s, 'five', '2026-10-23').current).toEqual({ mistakes: 2, hinted: true, revealed: false });
+  s.ladder.progress = { date: '2026-10-22', index: 2, results: [] };
+  expect(loadProgress(s, '2026-10-23')).toEqual({ date: '2026-10-23', index: 0, results: [] });
+  const current = { mistakes: 1, hinted: true, failed: false, tried: ['x|e2e4'] };
+  s.ladder.progress = { date: '2026-10-23', index: 2, results: [], current };
+  expect(loadProgress(s, '2026-10-23').current).toEqual(current);
 });
 
-test('recordDay writes the mode history and clears its progress only', () => {
+test('recordDay writes history and clears progress', () => {
   const s = load();
-  s.five.progress = { date: '2026-10-23', index: 5, results: [] };
-  s.solo.progress = { date: '2026-10-23', index: 0, results: [] };
-  const next = recordDay(s, 'five', '2026-10-23', day);
-  expect(next.five.history['2026-10-23']).toEqual(day);
-  expect(next.five.progress).toBeUndefined();
-  expect(next.solo.progress).toBeDefined();
-  expect(s.five.history['2026-10-23']).toBeUndefined();
+  s.ladder.progress = { date: '2026-10-23', index: 5, results: [] };
+  const next = recordDay(s, '2026-10-23', day);
+  expect(next.ladder).toEqual({ history: { '2026-10-23': day } });
+  expect(s.ladder.history['2026-10-23']).toBeUndefined();
 });
 
 test('loadIfAvailable returns null when storage is blocked or empty', () => {

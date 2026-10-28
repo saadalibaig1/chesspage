@@ -4,7 +4,7 @@ import type { Puzzle } from './daily';
 export type Sq = string;
 export type Color = 'w' | 'b';
 export type LastMove = { from: Sq; to: Sq; san: string; by: Color; captured: boolean; rook?: { from: Sq; to: Sq } };
-export type TryResult = 'correct' | 'solved' | 'wrong' | 'illegal';
+export type TryResult = 'correct' | 'solved' | 'wrong' | 'repeat' | 'illegal';
 
 const uci = (m: Pick<Move, 'from' | 'to' | 'promotion'>) => m.from + m.to + (m.promotion ?? '');
 
@@ -16,6 +16,7 @@ export class PuzzleRun {
   step = 0;
   private chess: Chess;
   private cursor = 0; // index into solution of the next move to play
+  private wrong = new Set<string>(); // "fen|uci" of wrong moves already tried
 
   constructor(private puzzle: Puzzle, autoOpen = true) {
     this.chess = new Chess(puzzle.fen);
@@ -84,7 +85,12 @@ export class PuzzleRun {
       // Lichess rule: any mate on the final move also solves it
       const probe = new Chess(this.chess.fen());
       probe.move({ from, to, promotion: promo });
-      if (!(last && probe.isCheckmate())) return 'wrong';
+      if (!(last && probe.isCheckmate())) {
+        const key = `${this.chess.fen()}|${uci(legal)}`;
+        if (this.wrong.has(key)) return 'repeat';
+        this.wrong.add(key);
+        return 'wrong';
+      }
     }
     this.play(from + to + (promo ?? ''));
     this.cursor++;
@@ -95,6 +101,10 @@ export class PuzzleRun {
     }
     return 'correct';
   }
+
+  /** Wrong moves tried so far, to persist across a reload. */
+  tried(): string[] { return [...this.wrong]; }
+  restoreTried(list: string[]) { list.forEach((k) => this.wrong.add(k)); }
 
   reply(): LastMove | null {
     if (this.chess.turn() === this.player || this.cursor >= this.puzzle.moves.length) return null;

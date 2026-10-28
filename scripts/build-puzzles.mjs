@@ -1,11 +1,11 @@
 // One-off: curate daily puzzles from the Lichess open puzzle database (CC0)
 // and write src/data/puzzles.json. Reads the Hugging Face parquet mirror with
 // HTTP range requests, so only the needed columns/rows are downloaded.
-// Output: 5 bands (warm-up → hard), each [id, fen, uciMoves, rating, themes][].
+// Output: 7 levels (1000 → 2200, ±100 each), each [id, fen, uciMoves, rating, themes][].
 import { writeFileSync } from 'node:fs';
 import { asyncBufferFromUrl, parquetReadObjects } from 'hyparquet';
 
-const BANDS = [[700, 1000], [1000, 1300], [1300, 1600], [1600, 1900], [1900, 2200]];
+const BANDS = [1000, 1200, 1400, 1600, 1800, 2000, 2200].map((r) => [r - 100, r + 100]);
 const PER_BAND = 365;
 const CHUNK = 50_000;
 const SRC = 'https://huggingface.co/api/datasets/Lichess/chess-puzzles/parquet/default/train/0.parquet';

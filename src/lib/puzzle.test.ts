@@ -1,7 +1,7 @@
 import { PuzzleRun } from './puzzle';
 import type { Puzzle } from './daily';
 
-const p = (fen: string, moves: string, band = 0): Puzzle => ({ id: 'x', fen, moves: moves.split(' '), rating: 1000, band, themes: '' });
+const p = (fen: string, moves: string, band = 0): Puzzle => ({ id: 'x', fen, moves: moves.split(' '), rating: 1000, level: band, themes: '' });
 const P8 = p('r6k/pp2r2p/4Rp1Q/3p4/8/1N1P2R1/PqP2bPP/7K b - - 0 24', 'f2g3 e6e7 b2b1 b3c1 b1c1 h6c1', 3);
 const BACK_RANK = p('7k/5ppp/8/8/8/8/8/RR4K1 b - - 0 1', 'h8g8 a1a8');
 const PROMO = p('k7/4P3/1K6/8/8/8/8/8 b - - 0 1', 'a8b8 e7e8q');
@@ -99,4 +99,16 @@ test('restart rewinds to the setup position for a replay', () => {
   expect(r.step).toBe(0);
   expect(r.lastMove).toMatchObject({ from: 'f2', to: 'g3' });
   expect(r.revealNext()).toMatchObject({ from: 'e6', to: 'e7' });
+});
+
+test('the same wrong move again is a repeat, not a second miss', () => {
+  const r = new PuzzleRun(P8);
+  expect(r.tryMove('e6', 'e5')).toBe('wrong');
+  expect(r.tryMove('e6', 'e5')).toBe('repeat');
+  expect(r.tryMove('e6', 'e4')).toBe('wrong');
+  // remembered across a reload of the same puzzle
+  const again = new PuzzleRun(P8);
+  again.restoreTried(r.tried());
+  expect(again.tryMove('e6', 'e4')).toBe('repeat');
+  expect(again.tryMove('e6', 'e7')).toBe('correct');
 });

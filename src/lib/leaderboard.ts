@@ -1,4 +1,5 @@
-import type { DayResult, Mode } from './results';
+import { LADDER_SIZE } from './daily';
+import type { DayResult } from './results';
 
 // Prototype only: synthetic country stats, stable for a given day.
 export const COUNTRIES = [
@@ -8,8 +9,9 @@ export const COUNTRIES = [
 const WEIGHT = [1, 0.95, 0.8, 0.6, 0.55, 0.5, 0.45, 0.45, 0.4, 0.4, 0.38, 0.35, 0.3, 0.3, 0.28,
   0.27, 0.25, 0.24, 0.22, 0.22, 0.2, 0.18, 0.18, 0.15, 0.15, 0.14, 0.13, 0.12, 0.12, 0.1];
 
-export type Row = { iso: string; players: number; winPct: number; avg: number; longestStreak: number; you?: boolean };
-export type Metric = 'win' | 'avg' | 'streak';
+/** avg = puzzles solved on the ladder; fullPct = share of players who climbed all six. */
+export type Row = { iso: string; players: number; avg: number; fullPct: number; longestStreak: number; you?: boolean };
+export type Metric = 'avg' | 'full' | 'streak';
 
 function seeded(str: string) {
   let h = 1779033703 ^ str.length;
@@ -25,23 +27,23 @@ function seeded(str: string) {
 
 const round2 = (x: number) => Math.round(x * 100) / 100;
 
-export function simulatedRows(date: string, mode: Mode): Row[] {
+export function simulatedRows(date: string): Row[] {
   return COUNTRIES.map((iso, i) => {
-    const r = seeded(date + mode + iso);
+    const r = seeded(date + iso);
     const w = WEIGHT[i];
     const skill = 0.5 * w + 0.5 * r();
     return {
       iso,
       players: Math.round(50 + 4950 * w * (0.7 + 0.3 * r())),
-      winPct: Math.round(45 + 50 * skill),
-      avg: round2(mode === 'five' ? 2.6 + 2.2 * skill : 4.4 - 2.0 * skill),
+      avg: round2(1.8 + 2.2 * skill),
+      fullPct: Math.round(2 + 14 * skill),
       longestStreak: Math.round(20 + 380 * (0.5 * w + 0.5 * r())),
     };
   });
 }
 
 export function withPlayer(rows: Row[], iso: string, r: DayResult | null, streak: number): Row[] {
-  const list = rows.some((x) => x.iso === iso) ? rows : [...rows, { iso, players: 0, winPct: 0, avg: 0, longestStreak: 0 }];
+  const list = rows.some((x) => x.iso === iso) ? rows : [...rows, { iso, players: 0, avg: 0, fullPct: 0, longestStreak: 0 }];
   return list.map((x) => {
     if (x.iso !== iso) return x;
     if (!r) return { ...x, you: true };
@@ -50,18 +52,14 @@ export function withPlayer(rows: Row[], iso: string, r: DayResult | null, streak
       ...x,
       you: true,
       players: p,
-      winPct: Math.round((x.winPct * x.players + (r.won ? 100 : 0)) / p),
       avg: round2((x.avg * x.players + r.n) / p),
+      fullPct: Math.round((x.fullPct * x.players + (r.n === LADDER_SIZE ? 100 : 0)) / p),
       longestStreak: Math.max(x.longestStreak, streak),
     };
   });
 }
 
-export function ranked(rows: Row[], m: Metric, mode: Mode): Row[] {
-  const by = {
-    win: (a: Row, b: Row) => b.winPct - a.winPct,
-    avg: mode === 'five' ? (a: Row, b: Row) => b.avg - a.avg : (a: Row, b: Row) => (a.avg || 99) - (b.avg || 99),
-    streak: (a: Row, b: Row) => b.longestStreak - a.longestStreak,
-  }[m];
-  return [...rows].sort(by);
+export function ranked(rows: Row[], m: Metric): Row[] {
+  const key = ({ avg: 'avg', full: 'fullPct', streak: 'longestStreak' } as const)[m];
+  return [...rows].sort((a, b) => b[key] - a[key]);
 }
