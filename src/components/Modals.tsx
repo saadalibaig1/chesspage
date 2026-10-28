@@ -37,7 +37,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         </ul>
         <h4>Example</h4>
         <div className="demo-row">
-          {LEVELS.slice(0, LADDER_SIZE).map((r, i) => <Tile key={r} c={['solved', 'solved', 'failed', '', 'solved', ''][i] || undefined}>{String(r)}</Tile>)}
+          {['solved', 'solved', 'failed', '', 'solved', ''].map((c, i) => <Tile key={i} c={c || undefined}>{String(i + 1)}</Tile>)}
         </div>
         <p className="small">Played four levels and solved three: <b>3/4</b>.</p>
         <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Turn hints off with Hard Mode.</p>

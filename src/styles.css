@@ -243,16 +243,8 @@ button {
 .tile.solved { background: var(--green); }
 .tile.failed { background: var(--red); }
 
-/* Daily: the tiles are buttons labelled with their rating, so any level can be picked. */
-.tiles.pick {
-  height: 44px;
-}
-
+/* Daily: the tiles are buttons, so any level can be picked. */
 .tiles.pick .tile {
-  width: 50px;
-  height: 44px;
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
   padding: 0;
   border-radius: 0;
   font-family: inherit;
@@ -307,6 +299,23 @@ button {
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+/* Daily: the selected level and its rating, larger and dark so it reads at a glance. */
+.subtitle.level {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  font-size: 16px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+
+.subtitle.level b {
+  margin-left: 0.25em;
+  margin-right: 0.2em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Ladder tries: filled dots left, hollow dots used. */
@@ -808,9 +817,9 @@ button {
 }
 
 .tile.demo {
-  width: 44px;
+  width: 36px;
   height: 36px;
-  font-size: 13px;
+  font-size: 18px;
 }
 
 /* Stats */

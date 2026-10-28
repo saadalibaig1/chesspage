@@ -133,17 +133,17 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
               aria-label={`Level ${LEVELS[i]}: ${o ?? (current[i] ? 'in play' : 'not played')}`}
               onClick={() => i !== sel && open(i)}
             >
-              {LEVELS[i]}
+              {i + 1}
             </button>
           );
         })}
       </div>
-      <p className="subtitle">
+      <p className={`subtitle${done ? '' : ' level'}`}>
         {done ? (
           `The idea: ${themeLabel(set[sel].themes)}`
         ) : (
           <>
-            Level {LEVELS[sel]}
+            Level {sel + 1} · <b>{LEVELS[sel]}</b> Elo
             <span className="tries" aria-label={`${left} of ${TRIES} tries left`}>
               {Array.from({ length: TRIES }, (_, i) => <span key={i} className={i < left ? 'on' : ''} />)}
             </span>
