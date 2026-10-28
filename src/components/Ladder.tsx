@@ -3,7 +3,7 @@ import { SolutionLine, Stage, StatusLine } from './Parts';
 import { usePuzzle } from './usePuzzle';
 import { LADDER_SIZE, LEVELS, type Puzzle } from '../lib/daily';
 import type { Sq } from '../lib/puzzle';
-import { ladderResult, TRIES, triesLeft, winWord, type DayResult, type Outcome, type PuzzleResult } from '../lib/results';
+import { emptyDay, levelWord, TRIES, triesLeft, withLevel, type DayResult, type LevelResult } from '../lib/results';
 import { loadProgress, recordDay, type Current, type Store } from '../lib/storage';
 import { themeLabel } from '../lib/themes';
 import { buzz, play } from '../lib/sound';
@@ -21,72 +21,65 @@ type Props = {
 };
 
 const FAIL_TOAST_MS = 2500;
+const FRESH: Current = { mistakes: 0, hinted: false };
 
-/** The daily ladder: six puzzles from 1000 to 2000, six tries on each. */
+/** The first level not played yet, looking from `from` and wrapping round; -1 when all are done. */
+function nextOpen(d: DayResult, from = 0): number {
+  for (let k = 0; k < LADDER_SIZE; k++) {
+    const i = (from + k) % LADDER_SIZE;
+    if (!d.levels[i]) return i;
+  }
+  return -1;
+}
+
+/** The daily ladder: six levels from 1000 to 2000. Play any of them, in any order, with five tries on each. */
 export function Ladder({ set, today, store, update, test, paused, toast, onComplete, onShowStats }: Props) {
   const g = usePuzzle(paused);
-  const history = test ? undefined : store.ladder.history[today];
-  const [index, setIndex] = useState(() => (history ? history.grid.length - 1 : 0));
-  const [results, setResults] = useState<PuzzleResult[]>([]);
-  const [mistakes, setMistakes] = useState(0); // on the current step
-  const [hinted, setHinted] = useState(false);
-  const [over, setOver] = useState<DayResult | null>(null);
+  const [day, setDay] = useState<DayResult>(() => (!test && store.ladder.history[today]) || emptyDay());
+  const [current, setCurrent] = useState<Record<number, Current>>(() => (test ? {} : loadProgress(store, today).current));
+  const [sel, setSel] = useState(() => Math.max(0, nextOpen(day)));
   const [bounce, setBounce] = useState(false);
 
-  function startStep(i: number, c?: Current) {
-    setIndex(i);
-    setMistakes(c?.mistakes ?? 0);
-    setHinted(c?.hinted ?? false);
-    g.start(set[i], c?.tried ?? []);
+  const cur = current[sel] ?? FRESH;
+  const done = day.levels[sel];
+
+  function open(i: number) {
+    setSel(i);
+    if (day.levels[i]) return g.show(set[i], true);
+    g.start(set[i], current[i]?.tried ?? []);
   }
 
-  const record = (r: DayResult) => {
-    if (!test) update((s) => recordDay(s, today, r));
-  };
-
-  function saveProgress(p: { index: number; results: PuzzleResult[]; current?: Current }) {
-    if (!test) update((s) => ({ ...s, ladder: { ...s.ladder, progress: { date: today, ...p } } }));
-  }
-
-  const saveCurrent = (c: Omit<Current, 'tried'>) =>
-    saveProgress({ index, results, current: { ...c, tried: g.run?.tried() ?? [] } });
-
-  // Enter the right state for today: resume, settle an interrupted fail, or show the finished day.
   useEffect(() => {
-    if (history) {
-      setIndex(history.grid.length - 1);
-      g.show(set[history.grid.length - 1], true);
-      return;
-    }
-    if (test) return startStep(0);
-    const p = loadProgress(store, today);
-    if (p.current?.failed) {
-      const step: PuzzleResult = { level: p.index, timeMs: 0, mistakes: p.current.mistakes, hinted: p.current.hinted, failed: true };
-      return record(ladderResult([...p.results, step]));
-    }
-    if (p.results.length >= LADDER_SIZE) return record(ladderResult(p.results));
-    setResults(p.results);
-    startStep(p.index, p.current);
+    const i = nextOpen(day);
+    open(i < 0 ? LADDER_SIZE - 1 : i);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [set, !!history]);
+  }, []);
 
-  function finish(all: PuzzleResult[]) {
-    const r = ladderResult(all);
-    setOver(r);
-    record(r);
-    // Not epoch-guarded: recording the day switches to the done view, which starts a new epoch.
-    setTimeout(() => {
-      toast(winWord(r), 2000);
-      if (r.n > 0) play('complete');
-      if (r.n === LADDER_SIZE) {
-        setBounce(true);
-        buzz([20, 40, 20]);
-      }
-      setTimeout(() => onComplete(r), 1600);
-    }, 400);
+  function saveCurrent(i: number, c: Current) {
+    setCurrent((all) => ({ ...all, [i]: c }));
+    if (!test) {
+      update((s) => ({ ...s, ladder: { ...s.ladder, progress: { date: today, current: { ...loadProgress(s, today).current, [i]: c } } } }));
+    }
+  }
+
+  function finishLevel(i: number, r: LevelResult) {
+    const next = withLevel(day, i, r);
+    setDay(next);
+    setCurrent(({ [i]: _, ...rest }) => rest);
+    if (!test) update((s) => recordDay(s, today, next, i));
+    toast(levelWord(r), 2000);
+    if (nextOpen(next) >= 0) return;
+    // All six played: celebrate, then show the stats.
+    if (next.n > 0) play('complete');
+    if (next.n === LADDER_SIZE) {
+      setBounce(true);
+      buzz([20, 40, 20]);
+    }
+    setTimeout(() => onComplete(next), 1800);
   }
 
   function onMove(from: Sq, to: Sq) {
+    const i = sel;
     const res = g.move(from, to);
     if (res === 'repeat') {
       toast('Already tried that', FAIL_TOAST_MS);
@@ -94,72 +87,63 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
       return;
     }
     if (res === 'wrong') {
-      const m = mistakes + 1;
+      const m = cur.mistakes + 1;
       const left = triesLeft(m);
-      setMistakes(m);
       if (left === 0) {
-        saveCurrent({ mistakes: m, hinted, failed: true });
-        toast('Out of tries', FAIL_TOAST_MS);
-        g.setStatus({ text: 'Out of tries', bad: true });
-        const step: PuzzleResult = { level: index, timeMs: g.elapsed(), mistakes: m, hinted, failed: true };
-        g.later(900, () => g.playSolution(() => finish([...results, step])));
+        g.setPhase('revealing'); // no more moves; the solution plays next
+        finishLevel(i, { mistakes: m, hinted: cur.hinted, failed: true, timeMs: g.elapsed() });
+        g.later(900, () => g.playSolution(() => g.setPhase('failed')));
         return;
       }
-      saveCurrent({ mistakes: m, hinted, failed: false });
+      saveCurrent(i, { mistakes: m, hinted: cur.hinted, tried: g.run?.tried() ?? [] });
       toast('Not quite', FAIL_TOAST_MS);
       g.setStatus({ text: 'Not quite', sub: `${left} ${left === 1 ? 'try' : 'tries'} left`, bad: true });
       return;
     }
-    if (res === 'solved') {
-      const all = [...results, { level: index, timeMs: g.elapsed(), mistakes, hinted, failed: false }];
-      setResults(all);
-      if (all.length === LADDER_SIZE) return finish(all);
-      saveProgress({ index: index + 1, results: all });
-      g.setStatus({ text: 'Solved', sub: `Next: ${LEVELS[index + 1]}` });
-    }
+    if (res === 'solved') finishLevel(i, { mistakes: cur.mistakes, hinted: cur.hinted, failed: false, timeMs: g.elapsed() });
   }
 
   function onHint() {
-    if (g.hint()) {
-      setHinted(true);
-      saveCurrent({ mistakes, hinted: true, failed: false });
-    }
+    if (g.hint()) saveCurrent(sel, { ...cur, hinted: true, tried: g.run?.tried() ?? [] });
   }
 
-  // ----- tiles: one per step -----
-  const grid: (Outcome | null)[] = Array.from({ length: LADDER_SIZE }, (_, i) =>
-    history ? history.grid[i] ?? null : results[i] ? (results[i].failed ? 'failed' : 'solved') : null);
-  const ended = !!history || !!over;
-  const failing = g.phase === 'revealing' && !g.replaying;
-  const activeTile = ended || g.phase === 'solved' ? -1 : index;
-  const initial = useRef<(Outcome | null)[] | null>(null);
-  initial.current ??= grid; // tiles filled at mount show instantly; later ones flip
+  const outcome = (i: number) => {
+    const l = day.levels[i];
+    return l ? (l.failed ? 'failed' : 'solved') : null;
+  };
+  const initial = useRef<(string | null)[] | null>(null);
+  initial.current ??= day.levels.map((_, i) => outcome(i)); // tiles finished at mount show instantly; later ones flip
 
-  const left = triesLeft(mistakes);
-  const final = history ?? over;
-  const idea = themeLabel(set[index]?.themes ?? '');
+  const following = nextOpen(day, sel + 1);
+  const title = !done ? '' : done.failed ? 'Out of tries' : done.mistakes ? `Solved on try ${done.mistakes + 1}` : 'Solved on the first try';
+  const left = triesLeft(cur.mistakes);
 
   return (
     <>
-      <div className={`tiles${bounce ? ' bounce' : ''}`} role="list" aria-label="Today’s ladder">
-        {grid.map((o, i) => (
-          <span
-            key={i}
-            role="listitem"
-            className={`tile${o ? ` ${o}${initial.current![i] === o ? '' : ' flip'}` : ''}${i === activeTile ? ' active' : ''}`}
-            style={{ animationDelay: bounce ? `${i * 100}ms` : undefined }}
-            aria-label={`Puzzle ${i + 1}, ${LEVELS[i]}: ${o ?? (i === activeTile ? 'current' : 'not reached')}`}
-          >
-            {i + 1}
-          </span>
-        ))}
+      <div className={`tiles pick${bounce ? ' bounce' : ''}`} role="group" aria-label="Today’s levels: pick any">
+        {set.map((_, i) => {
+          const o = outcome(i);
+          return (
+            <button
+              key={i}
+              type="button"
+              className={`tile${o ? ` ${o}${initial.current![i] === o ? '' : ' flip'}` : ''}${i === sel ? ' active' : ''}`}
+              style={{ animationDelay: bounce ? `${i * 100}ms` : undefined }}
+              aria-pressed={i === sel}
+              aria-label={`Level ${LEVELS[i]}: ${o ?? (current[i] ? 'in play' : 'not played')}`}
+              onClick={() => i !== sel && open(i)}
+            >
+              {i + 1}
+            </button>
+          );
+        })}
       </div>
       <p className="subtitle">
-        {ended || failing ? (
-          `The idea: ${idea}`
+        {done ? (
+          `The idea: ${themeLabel(set[sel].themes)}`
         ) : (
           <>
-            Puzzle {index + 1} of {LADDER_SIZE} · {LEVELS[index]}
+            Level {LEVELS[sel]}
             <span className="tries" aria-label={`${left} of ${TRIES} tries left`}>
               {Array.from({ length: TRIES }, (_, i) => <span key={i} className={i < left ? 'on' : ''} />)}
             </span>
@@ -170,29 +154,29 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
       <Stage g={g} coords={store.settings.coords} onMove={onMove} />
 
       <footer className="strip">
-        {failing ? (
-          <SolutionLine g={g} title="Out of tries" />
-        ) : ended ? (
+        {done ? (
           <>
-            <SolutionLine g={g} title={final ? `Climbed ${final.n}/${LADDER_SIZE}` : ''} />
+            <SolutionLine g={g} title={title} />
             <div className="keys">
               <button type="button" className="key" onClick={g.replay} disabled={g.phase === 'revealing'}>Replay</button>
-              <button type="button" className="key" onClick={onShowStats}>Stats</button>
+              {following >= 0 ? (
+                <button type="button" className="key go" onClick={() => open(following)} disabled={g.phase === 'revealing' && !g.replaying}>
+                  Next
+                </button>
+              ) : (
+                <button type="button" className="key" onClick={onShowStats}>Stats</button>
+              )}
             </div>
           </>
         ) : (
           <>
             <StatusLine g={g} />
             <div className="keys">
-              {g.phase === 'solved' ? (
-                <button type="button" className="key go" onClick={() => startStep(index + 1)}>Next</button>
-              ) : (
-                !store.settings.hard && (
-                  <button type="button" className="key" onClick={onHint} disabled={g.phase !== 'play' || !!g.hintTo}
-                    aria-label={g.hintSq ? 'Hint: show the path' : 'Hint: show the piece to move'}>
-                    Hint
-                  </button>
-                )
+              {!store.settings.hard && (
+                <button type="button" className="key" onClick={onHint} disabled={g.phase !== 'play' || !!g.hintTo}
+                  aria-label={g.hintSq ? 'Hint: show the path' : 'Hint: show the piece to move'}>
+                  Hint
+                </button>
               )}
             </div>
           </>

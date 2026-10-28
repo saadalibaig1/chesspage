@@ -2,11 +2,11 @@
 
 A daily chess puzzle game in the style of Wordle. Three modes:
 
-- **Daily (default):** a ladder of 6 puzzles, 1000 → 2000 rating, the same for everyone. You get 6 tries on each puzzle. A wrong move uses a try; the same wrong move again is free. Out of tries ends the climb and plays the solution (the idea, the full solution, Replay). Share text: `ChessPage 12 4/6` followed by 🟩🟩🟩🟩🟥⬜.
+- **Daily (default):** 6 levels, 1000 → 2000 rating, the same for everyone. Tap any level to play it, in any order; do one, a few or all six. You get 5 tries on each level. A wrong move uses a try; the same wrong move again is free. Out of tries ends that level only and plays its solution (the idea, the full solution, Replay). Share: one row per played level, e.g. `ChessPage 12 · 3/4` then `1200 ♟️👑` (a pawn per wrong move, a crown for the solve).
 - **Practice:** pick a level (1000–2200). Unlimited, not counted. A clean solve under 15s moves you up a level.
 - **Timer:** one 1600 puzzle a day, the same for everyone, against a 1-minute clock. The board stays blurred under a Start key until the clock starts; a reload resumes the clock. Share: `ChessPage Timer 12` / `⏱️ 0:38` (or `⏱️ X`).
 - **Hint:** tap once to see which piece moves. Tap again to see where it goes. Hard Mode turns hints off.
-- Stats count the Daily ladder: played, average climb, streak of days played. Country leaderboards are simulated.
+- Stats count the Daily levels: days played, average solved, streak of days with at least one level played. Country leaderboards are simulated.
 
 ```bash
 npm install

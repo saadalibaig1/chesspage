@@ -1,36 +1,45 @@
 import {
-  formatTime, ladderResult, ladderStats, practiceNext, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, winWord,
-  type DayResult, type PuzzleResult,
+  emptyDay, formatTime, ladderStats, levelWord, practiceNext, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, withLevel,
+  type DayResult, type LevelResult,
 } from './results';
 
-const r = (o: Partial<PuzzleResult> = {}): PuzzleResult => ({ level: 0, timeMs: 10000, mistakes: 0, hinted: false, failed: false, ...o });
-const day = (n: number): DayResult => ({ n, grid: [...Array(n).fill('solved'), ...(n < 6 ? ['failed'] : [])], hinted: false, timeMs: 1 });
-
-test('ladderResult: solved count, a failed step, hint flag', () => {
-  expect(ladderResult([r(), r({ mistakes: 2 }), r({ hinted: true }), r({ failed: true, mistakes: 1 })])).toEqual({
-    n: 3, grid: ['solved', 'solved', 'solved', 'failed'], hinted: true, timeMs: 40000,
-  });
-  expect(ladderResult(Array.from({ length: 6 }, () => r()))).toMatchObject({ n: 6, hinted: false });
+const lv = (o: Partial<LevelResult> = {}): LevelResult => ({ mistakes: 0, hinted: false, failed: false, timeMs: 1000, ...o });
+/** A day with the first n levels solved and the next one failed. */
+const day = (n: number): DayResult => ({
+  n, levels: Array.from({ length: 6 }, (_, i) => (i < n ? lv() : i === n ? lv({ failed: true, mistakes: 5 }) : null)),
 });
 
-test('triesLeft: 6 tries on every puzzle, each wrong move uses one', () => {
-  expect(TRIES).toBe(6);
-  expect(triesLeft(0)).toBe(6);
-  expect(triesLeft(5)).toBe(1);
-  expect(triesLeft(6)).toBe(0);
+test('triesLeft: 5 tries on each level, each wrong move uses one', () => {
+  expect(TRIES).toBe(5);
+  expect(triesLeft(0)).toBe(5);
+  expect(triesLeft(4)).toBe(1);
+  expect(triesLeft(5)).toBe(0);
 });
 
-test('shareText: one square per step, unreached steps white', () => {
-  expect(shareText(12, day(4))).toBe('ChessPage 12 4/6\n🟩🟩🟩🟩🟥⬜');
-  expect(shareText(12, day(6))).toBe('ChessPage 12 6/6\n🟩🟩🟩🟩🟩🟩');
-  expect(shareText(12, day(0))).toBe('ChessPage 12 0/6\n🟥⬜⬜⬜⬜⬜');
-  expect(shareText(12, { ...day(2), hinted: true }, true)).toBe('ChessPage test 2/6 💡\n🟩🟩🟥⬜⬜⬜');
+test('withLevel: levels can be played in any order; n counts the solved ones', () => {
+  let d = emptyDay();
+  expect(d).toEqual({ n: 0, levels: [null, null, null, null, null, null] });
+  d = withLevel(d, 3, lv({ mistakes: 2 }));
+  d = withLevel(d, 0, lv({ failed: true, mistakes: 5 }));
+  d = withLevel(d, 5, lv());
+  expect(d.n).toBe(2);
+  expect(d.levels.map((l) => (l ? (l.failed ? 'x' : 'ok') : '-'))).toEqual(['x', '-', '-', 'ok', '-', 'ok']);
 });
 
-test('winWord by how high you climbed', () => {
-  expect([0, 1, 2, 3, 4, 5, 6].map((n) => winWord(day(n)))).toEqual([
-    'Better luck tomorrow', 'Good start', 'Nice', 'Great', 'Impressive', 'Magnificent', 'Genius',
-  ]);
+test('shareText: one row per played level, a pawn per wrong move and a crown for the solve', () => {
+  let d = emptyDay();
+  d = withLevel(d, 0, lv());
+  d = withLevel(d, 1, lv({ mistakes: 1 }));
+  d = withLevel(d, 2, lv({ failed: true, mistakes: 5 }));
+  d = withLevel(d, 4, lv({ mistakes: 2 }));
+  expect(shareText(12, d)).toBe('ChessPage 12 · 3/4\n1000 👑\n1200 ♟️👑\n1400 ♟️♟️♟️♟️♟️\n1800 ♟️♟️👑');
+  expect(shareText(12, withLevel(emptyDay(), 5, lv({ hinted: true })), true)).toBe('ChessPage test · 1/1 💡\n2000 👑');
+});
+
+test('levelWord: by tries used; a hinted solve is just "Solved"', () => {
+  expect([0, 1, 2, 3, 4].map((m) => levelWord(lv({ mistakes: m })))).toEqual(['Genius', 'Magnificent', 'Impressive', 'Great', 'Phew']);
+  expect(levelWord(lv({ hinted: true }))).toBe('Solved');
+  expect(levelWord(lv({ failed: true, mistakes: 5 }))).toBe('Out of tries');
 });
 
 test('ladderStats: played, average, streak of days played, distribution 0–6', () => {

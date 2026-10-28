@@ -32,7 +32,7 @@ test('simulatedRows is stable per day', () => {
 test('withPlayer folds the player into their country', () => {
   const rows = simulatedRows('2026-10-23');
   const pk = rows.find((r) => r.iso === 'PK')!;
-  const me = withPlayer(rows, 'PK', { n: 6, grid: [], hinted: false, timeMs: 1 }, 999).find((r) => r.iso === 'PK')!;
+  const me = withPlayer(rows, 'PK', { n: 6, levels: [] }, 999).find((r) => r.iso === 'PK')!;
   expect(me).toMatchObject({ you: true, players: pk.players + 1, longestStreak: 999 });
   expect(me.fullPct).toBeGreaterThanOrEqual(pk.fullPct);
   expect(me.avg).toBeGreaterThanOrEqual(pk.avg);

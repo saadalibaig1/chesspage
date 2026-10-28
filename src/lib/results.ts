@@ -1,40 +1,44 @@
 import { LADDER_SIZE, LEVELS } from './daily';
 
 export type Mode = 'ladder' | 'practice' | 'timer';
-export type Outcome = 'solved' | 'failed';
-/** One ladder step. failed = ran out of tries on it. */
-export type PuzzleResult = { level: number; timeMs: number; mistakes: number; hinted: boolean; failed: boolean };
-/** A finished day: n = puzzles solved (how high you climbed). */
-export type DayResult = { n: number; grid: Outcome[]; hinted: boolean; timeMs: number };
+/** One level of the day. failed = used all its tries. */
+export type LevelResult = { mistakes: number; hinted: boolean; failed: boolean; timeMs: number };
+/** The day so far: one entry per ladder level (null = not played yet). n = levels solved. */
+export type DayResult = { n: number; levels: (LevelResult | null)[] };
 /** Timer mode's day: solved within the minute, and how long it took. */
 export type TimerResult = { solved: boolean; ms: number };
 
-/** Tries per ladder puzzle. Each wrong move uses one; the same wrong move again is free. */
-export const TRIES = 6;
+/** Tries per ladder level. Each wrong move uses one; the same wrong move again is free. */
+export const TRIES = 5;
 export const TIMER_MS = 60_000;
 const QUICK_MS = 15_000;
 
-export function ladderResult(results: PuzzleResult[]): DayResult {
-  return {
-    n: results.filter((r) => !r.failed).length,
-    grid: results.map((r) => (r.failed ? 'failed' : 'solved')),
-    hinted: results.some((r) => r.hinted),
-    timeMs: results.reduce((t, r) => t + r.timeMs, 0),
-  };
+export const emptyDay = (): DayResult => ({ n: 0, levels: Array(LADDER_SIZE).fill(null) });
+
+export function withLevel(day: DayResult, i: number, r: LevelResult): DayResult {
+  const levels = day.levels.map((l, j) => (j === i ? r : l));
+  return { n: levels.filter((l) => l && !l.failed).length, levels };
 }
 
 export const triesLeft = (mistakes: number) => Math.max(0, TRIES - mistakes);
 
-const EMOJI: Record<Outcome, string> = { solved: '🟩', failed: '🟥' };
+// The pawn carries U+FE0F so it renders as an emoji, not a text glyph.
+const PAWN = '\u265F\uFE0F';
 
+/** One row per played level: a pawn per wrong move, then a crown if solved. */
 export function shareText(day: number, r: DayResult, test = false): string {
-  const head = `ChessPage ${test ? 'test' : day} ${r.n}/${LADDER_SIZE}${r.hinted ? ' 💡' : ''}`;
-  const squares = Array.from({ length: LADDER_SIZE }, (_, i) => (r.grid[i] ? EMOJI[r.grid[i]] : '⬜'));
-  return `${head}\n${squares.join('')}`;
+  const played = r.levels.flatMap((l, i) => (l ? [{ l, i }] : []));
+  const hinted = played.some(({ l }) => l.hinted) ? ' 💡' : '';
+  const rows = played.map(({ l, i }) => `${LEVELS[i]} ${PAWN.repeat(l.mistakes)}${l.failed ? '' : '👑'}`);
+  return [`ChessPage ${test ? 'test' : day} · ${r.n}/${played.length}${hinted}`, ...rows].join('\n');
 }
 
-const WORDS = ['Better luck tomorrow', 'Good start', 'Nice', 'Great', 'Impressive', 'Magnificent', 'Genius'];
-export const winWord = (r: DayResult) => WORDS[r.n];
+const WORDS = ['Genius', 'Magnificent', 'Impressive', 'Great', 'Phew'];
+
+export function levelWord(r: LevelResult): string {
+  if (r.failed) return 'Out of tries';
+  return r.hinted ? 'Solved' : WORDS[Math.min(r.mistakes, WORDS.length - 1)];
+}
 
 function prevDay(key: string): string {
   const [y, m, d] = key.split('-').map(Number);

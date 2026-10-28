@@ -16,7 +16,7 @@ Chess enthusiasts who want a short daily ritual: open the page once a day, spend
 
 ## Product Purpose
 
-ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone climbs the same ladder of six puzzles, from 1000 to 2000 rating, with six tries on each puzzle. Most people reach 1–3, some 4–5, and few all six. There is no time limit. Once the day's ladder is done, it cannot be replayed until tomorrow. Practice (pick a level, 1000–2200) is unranked. Timer is one 1600 puzzle a day, the same for everyone, against a 1-minute clock. Success is a habit: people return daily and keep their streak alive.
+ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone gets the same six levels, from 1000 to 2000 rating. Players pick any levels, in any order, with five tries on each. Most solve 1–3, some 4–5, and few all six. There is no time limit. A finished level cannot be replayed until tomorrow; unplayed levels stay open until midnight. Practice (pick a level, 1000–2200) is unranked. Timer is one 1600 puzzle a day, the same for everyone, against a 1-minute clock. Success is a habit: people return daily and keep their streak alive.
 
 ## Positioning
 
@@ -28,11 +28,11 @@ Finite, shared and social, where chess.com and Lichess puzzles are endless solo 
 - A testing toggle can generate a fresh puzzle and bypass the lock.
 - Intro popup on first visit explains the rules, as Wordle does. A success popup congratulates on completion.
 - The share result is plain text plus emoji (Wordle-style) to copy and paste into Slack, chat or social posts.
-- A wrong move uses one of the puzzle's six tries; repeating the same wrong move does not. Out of tries ends the climb: the solution plays out with arrows, and the idea and the full solution are shown. A two-step hint (the piece, then its path) is available unless Hard Mode is on.
+- A wrong move uses one of the level's five tries; repeating the same wrong move does not. Out of tries ends that level only: the solution plays out with arrows, and the idea and the full solution are shown. A two-step hint (the piece, then its path) is available unless Hard Mode is on.
 
 ## Capabilities and Constraints
 
-- Results are Wordle-style: n/6 (puzzles climbed), average climb, current and max streak (days played). There are no points.
+- Results are Wordle-style: solved/played, average solved, current and max streak (days played). The share has one row per played level: a pawn per wrong move, a crown for the solve. There are no points.
 - Leaderboards are country-based only, with three categories: average climb, share who climbed all six, and streak. No individual user leaderboard in v1.
 - The country is inferred on the client (no backend). Country leaderboard data is simulated in this prototype, with the player's own result merged into their country.
 - No sign-in in v1. Google SSO was discussed for future individual leaderboards and is deferred.

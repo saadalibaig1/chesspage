@@ -28,26 +28,24 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
     <Sheet title="How To Play" onClose={onClose}>
       <div className="help">
         <h2 className="title">How To Play</h2>
-        <p className="lead">Climb today’s ladder: {LADDER_SIZE} puzzles, easy to hard.</p>
+        <p className="lead">Today’s ladder: {LADDER_SIZE} levels, {LEVELS[0]} to {LEVELS[LADDER_SIZE - 1]}.</p>
         <ul>
+          <li>Tap any level to play it. Do one, a few, or all six, in any order.</li>
           <li>Find the best move. Drag or tap a piece to play it.</li>
-          <li>Each puzzle is harder than the last, from {LEVELS[0]} to {LEVELS[LADDER_SIZE - 1]}.</li>
-          <li>You get {TRIES} tries on each puzzle. A wrong move uses a try. The same wrong move again is free.</li>
-          <li>Out of tries? The climb ends and the solution plays.</li>
+          <li>You get {TRIES} tries on each level. A wrong move uses a try. The same wrong move again is free.</li>
+          <li>Out of tries? That level ends and its solution plays. The other levels stay open.</li>
         </ul>
-        <h4>Examples</h4>
-        <div className="demo-row">{[1, 2, 3, 4, 5, 6].map((n) => <Tile key={n} c="solved">{String(n)}</Tile>)}</div>
-        <p className="small">All six solved: <b>6/6</b>.</p>
+        <h4>Example</h4>
         <div className="demo-row">
-          <Tile c="solved">1</Tile><Tile c="solved">2</Tile><Tile c="solved">3</Tile><Tile c="failed">4</Tile><Tile>5</Tile><Tile>6</Tile>
+          <Tile c="solved">1</Tile><Tile c="solved">2</Tile><Tile c="failed">3</Tile><Tile>4</Tile><Tile c="solved">5</Tile><Tile>6</Tile>
         </div>
-        <p className="small">Out of tries on puzzle 4: <b>3/6</b>.</p>
+        <p className="small">Played levels 1, 2, 3 and 5; solved three: <b>3/4</b>.</p>
         <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Turn hints off with Hard Mode.</p>
         <hr />
         <p className="small"><b>Practice:</b> pick a level from {LEVELS[0]} to {LEVELS.at(-1)}. A quick, clean solve moves you up. Not counted.</p>
         <p className="small"><b>Timer:</b> one {LEVELS[TIMER_LEVEL]} puzzle a day, the same for everyone. Solve it in under a minute.</p>
         <hr />
-        <p className="small muted">A new ladder arrives every day at midnight. Everyone climbs the same one.</p>
+        <p className="small muted">New levels arrive every day at midnight. Everyone gets the same ones.</p>
       </div>
     </Sheet>
   );
@@ -87,7 +85,7 @@ export function StatsModal({ store, today, day, result, test, onClose, onLeaderb
         </div>
         <h3 className="caps">Puzzles Solved</h3>
         {s.played === 0 ? (
-          <p className="center muted small">No data yet. Climb today’s ladder!</p>
+          <p className="center muted small">No data yet. Play a level today!</p>
         ) : (
           <ol className="dist">
             {s.dist.map((count, i) => (
@@ -163,7 +161,7 @@ export function LeaderboardModal({ date, country, store, onCountry, onClose }: B
           ))}
         </select>
       </label>
-      <p className="muted small">Prototype: simulated data. {today ? 'Your result is counted in your country.' : 'Finish today’s ladder to add your result.'}</p>
+      <p className="muted small">Prototype: simulated data. {today ? 'Your result is counted in your country.' : 'Play a level today to add your result.'}</p>
     </Sheet>
   );
 }
