@@ -5,7 +5,7 @@ import { TimerMode } from './components/TimerMode';
 import { Icon } from './components/Icon';
 import { PieceSprite } from './components/pieces';
 import { HelpModal, LeaderboardModal, SettingsModal, StatsModal } from './components/Modals';
-import { dailyLadder, dayNumber, localDateKey, msUntilMidnight, randomLadder, type Pool, type Puzzle } from './lib/daily';
+import { dailyLadder, dailyTimer, dayNumber, localDateKey, msUntilMidnight, randomLadder, randomPuzzle, TIMER_LEVEL, type Pool, type Puzzle } from './lib/daily';
 import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { detectCountry } from './lib/country';
@@ -88,6 +88,11 @@ export default function App() {
     // testNonce deals a fresh random ladder
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pool, today, test, testNonce]);
+  const timerPuzzle: Puzzle | null = useMemo(() => {
+    if (!pool) return null;
+    return test ? randomPuzzle(pool, TIMER_LEVEL) : dailyTimer(today, pool);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pool, today, test, testNonce]);
 
   function onSetting(k: keyof Settings, v: boolean) {
     update((s) => ({ ...s, settings: { ...s.settings, [k]: v } }));
@@ -138,9 +143,9 @@ export default function App() {
         ))}
       </nav>
 
-      {test && mode === 'ladder' && (
-        <button type="button" className="chip" onClick={() => setTestNonce((n) => n + 1)} aria-label="Test mode: deal a new random ladder">
-          Test · New ladder
+      {test && mode !== 'practice' && (
+        <button type="button" className="chip" onClick={() => setTestNonce((n) => n + 1)} aria-label={`Test mode: deal a new random ${mode === 'ladder' ? 'ladder' : 'puzzle'}`}>
+          Test · New {mode === 'ladder' ? 'ladder' : 'puzzle'}
         </button>
       )}
 
@@ -162,7 +167,8 @@ export default function App() {
       ) : mode === 'practice' ? (
         <Practice key="practice" pool={pool} store={store} update={update} paused={modal !== null} toast={toast} />
       ) : mode === 'timer' ? (
-        <TimerMode key="timer" pool={pool} store={store} update={update} paused={modal !== null} toast={toast} />
+        <TimerMode key={`timer-${today}-${test}-${testNonce}`} puzzle={timerPuzzle!} today={today} day={dayNumber(today)}
+          store={store} update={update} test={test} paused={modal !== null} toast={toast} />
       ) : (
         <Ladder
           key={`${today}-${test}-${testNonce}`}

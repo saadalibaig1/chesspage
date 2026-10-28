@@ -1,4 +1,4 @@
-import type { DayResult, Mode, PuzzleResult } from './results';
+import type { DayResult, Mode, PuzzleResult, TimerResult } from './results';
 
 export type Settings = { hard: boolean; contrast: boolean; sound: boolean; coords: boolean; testMode: boolean };
 /** The ladder step in progress. tried = wrong moves already made (they don't cost a life twice). */
@@ -12,7 +12,8 @@ export type Store = {
   settings: Settings;
   ladder: { history: Record<string, DayResult>; progress?: Progress };
   practice: { level: number };
-  timer: { best: number };
+  /** progress = a run in play: time used and wrong moves so far, so a reload resumes the clock. */
+  timer: { history: Record<string, TimerResult>; progress?: { date: string; elapsed: number; tried?: string[] } };
 };
 
 const KEY = 'chesspage:v3';
@@ -24,7 +25,7 @@ const fresh = (): Store => ({
   settings: { ...DEFAULT_SETTINGS },
   ladder: { history: {} },
   practice: { level: 0 },
-  timer: { best: 0 },
+  timer: { history: {} },
 });
 
 export function load(): Store {

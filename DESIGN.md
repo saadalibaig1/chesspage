@@ -8,8 +8,8 @@ The look is light mode only, simple, and modelled on Wordle's layout, palette an
 |---|---|---|
 | Header | 56px, 1px bottom rule | Leaderboard icon on the left; bold serif **ChessPage** centred; help, stats and settings icons on the right |
 | Mode tabs | 44px | Segmented control: Daily, Practice, Timer. The active tab is a white pill on light grey |
-| Top row | 40px | Daily: six numbered ladder tiles. Practice: a Level select. Timer: strikes, the countdown clock, and the score |
-| Subtitle | 16px | Uppercase grey, e.g. "Puzzle 3 of 6 · 1400 ♥♥♡"; "The idea: Fork" at the end |
+| Top row | 40px | Daily: six numbered ladder tiles. Practice: a Level select. Timer: the 1-minute countdown clock (red under 10s). The board is blurred until Start |
+| Subtitle | 16px | Uppercase grey, e.g. "Puzzle 3 of 6 · 1400" plus three life dots (filled = left, hollow = lost); "The idea: Fork" at the end |
 | Board | `min(100vw − 40px, 100dvh − 300px, 520px)` | Slate-blue squares, 4px radius, 2px tile-grey ring |
 | Strip | 52px | Side disc and status text (a wrong move shows in red until the next move), plus buttons styled as keyboard keys |
 

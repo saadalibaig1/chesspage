@@ -6,6 +6,8 @@ export const LAUNCH = '2026-10-23';
 /** Puzzle levels (Lichess rating, ±100). The daily ladder climbs the first LADDER_SIZE. */
 export const LEVELS = [1000, 1200, 1400, 1600, 1800, 2000, 2200];
 export const LADDER_SIZE = 6;
+/** Timer mode's daily puzzle level (1600). */
+export const TIMER_LEVEL = 3;
 const STRIDE = [7, 11, 13, 17, 19, 23, 29]; // coprime with 365 → a full cycle without repeats
 const DAY_MS = 86_400_000;
 
@@ -36,6 +38,15 @@ export function dailyLadder(key: string, pool: Pool): Puzzle[] {
     const i = (((day * STRIDE[l] + l * 50) % n) + n) % n;
     return toPuzzle(list[i], l);
   });
+}
+
+/** Timer mode: one puzzle a day, half a cycle from the ladder's pick at the same level, so they never match. */
+export function dailyTimer(key: string, pool: Pool): Puzzle {
+  const list = pool[TIMER_LEVEL];
+  const n = list.length;
+  const day = dayNumber(key) - 1;
+  const i = (((day * STRIDE[TIMER_LEVEL] + TIMER_LEVEL * 50 + Math.floor(n / 2)) % n) + n) % n;
+  return toPuzzle(list[i], TIMER_LEVEL);
 }
 
 export function randomPuzzle(pool: Pool, level: number, rand = Math.random): Puzzle {

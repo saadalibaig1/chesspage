@@ -4,7 +4,7 @@ import { Sheet } from './Sheet';
 import { ALL_COUNTRIES, countryName, flag } from '../lib/country';
 import { ranked, simulatedRows, withPlayer, type Metric } from '../lib/leaderboard';
 import { ladderStats, LIVES, shareText, type DayResult } from '../lib/results';
-import { LADDER_SIZE, LEVELS, msUntilMidnight } from '../lib/daily';
+import { LADDER_SIZE, LEVELS, msUntilMidnight, TIMER_LEVEL } from '../lib/daily';
 import { shareOrCopy } from '../lib/share';
 import type { Settings, Store } from '../lib/storage';
 
@@ -45,7 +45,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Turn hints off with Hard Mode.</p>
         <hr />
         <p className="small"><b>Practice:</b> pick a level from {LEVELS[0]} to {LEVELS.at(-1)}. A quick, clean solve moves you up. Not counted.</p>
-        <p className="small"><b>Timer:</b> solve as many as you can in 3 minutes. Three misses and you’re out.</p>
+        <p className="small"><b>Timer:</b> one {LEVELS[TIMER_LEVEL]} puzzle a day, the same for everyone. Solve it in under a minute.</p>
         <hr />
         <p className="small muted">A new ladder arrives every day at midnight. Everyone climbs the same one.</p>
       </div>

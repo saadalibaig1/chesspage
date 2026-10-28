@@ -9,7 +9,7 @@ beforeEach(() => {
 });
 
 test('defaults: ladder mode, first practice level, no timer best', () => {
-  expect(load()).toMatchObject({ introSeen: false, mode: 'ladder', settings: DEFAULT_SETTINGS, ladder: { history: {} }, practice: { level: 0 }, timer: { best: 0 } });
+  expect(load()).toMatchObject({ introSeen: false, mode: 'ladder', settings: DEFAULT_SETTINGS, ladder: { history: {} }, practice: { level: 0 }, timer: { history: {} } });
 });
 
 test('save/load round-trips', () => {
@@ -17,9 +17,9 @@ test('save/load round-trips', () => {
   s.introSeen = true;
   s.mode = 'timer';
   s.ladder.history['2026-10-23'] = day;
-  s.timer.best = 12;
+  s.timer.history['2026-10-23'] = { solved: true, ms: 1000 };
   save(s);
-  expect(load()).toMatchObject({ introSeen: true, mode: 'timer', ladder: { history: { '2026-10-23': day } }, timer: { best: 12 } });
+  expect(load()).toMatchObject({ introSeen: true, mode: 'timer', ladder: { history: { '2026-10-23': day } }, timer: { history: { '2026-10-23': { solved: true, ms: 1000 } } } });
 });
 
 test('load returns default when localStorage throws', () => {

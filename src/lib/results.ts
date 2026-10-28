@@ -6,10 +6,11 @@ export type Outcome = 'solved' | 'failed';
 export type PuzzleResult = { level: number; timeMs: number; mistakes: number; hinted: boolean; failed: boolean };
 /** A finished day: n = puzzles solved (how high you climbed). */
 export type DayResult = { n: number; grid: Outcome[]; hinted: boolean; timeMs: number };
+/** Timer mode's day: solved within the minute, and how long it took. */
+export type TimerResult = { solved: boolean; ms: number };
 
 export const LIVES = 3;
-export const TIMER_MS = 180_000;
-export const STRIKES = 3;
+export const TIMER_MS = 60_000;
 const QUICK_MS = 15_000;
 
 export function ladderResult(results: PuzzleResult[]): DayResult {
@@ -72,10 +73,8 @@ export function ladderStats(history: Record<string, DayResult>, today: string): 
   };
 }
 
-/** Timer mode starts at the first level and climbs one level every two solves. */
-export const rushLevel = (solved: number) => Math.min(LEVELS.length - 1, Math.floor(solved / 2));
-
-export const timerShareText = (score: number) => `ChessPage Timer\n⏱️ ${score} solved in ${formatTime(TIMER_MS)}`;
+export const timerShareText = (day: number, r: TimerResult, test = false) =>
+  `ChessPage Timer ${test ? 'test' : day}\n⏱️ ${r.solved ? formatTime(r.ms) : 'X'}`;
 
 /** Practice moves up a level after a quick solve with no miss or hint. */
 export function practiceNext(level: number, timeMs: number, clean: boolean): number {

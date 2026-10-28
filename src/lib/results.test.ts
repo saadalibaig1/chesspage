@@ -1,5 +1,5 @@
 import {
-  formatTime, ladderResult, ladderStats, livesLeft, practiceNext, rushLevel, shareText, timerShareText, winWord,
+  formatTime, ladderResult, ladderStats, livesLeft, practiceNext, shareText, TIMER_MS, timerShareText, winWord,
   type DayResult, type PuzzleResult,
 } from './results';
 
@@ -42,9 +42,11 @@ test('ladderStats: played, average, streak of days played, distribution 0–6', 
   expect(ladderStats({ '2026-10-21': day(1), '2026-10-22': day(2), '2026-10-23': day(2) }, '2026-10-23').avg).toBe(1.7);
 });
 
-test('Timer mode climbs one level every two solves, up to 2200', () => {
-  expect([0, 1, 2, 3, 11, 12, 40].map(rushLevel)).toEqual([0, 0, 1, 1, 5, 6, 6]);
-  expect(timerShareText(14)).toBe('ChessPage Timer\n⏱️ 14 solved in 3:00');
+test('Timer: one minute, share shows the solve time or X', () => {
+  expect(TIMER_MS).toBe(60_000);
+  expect(timerShareText(12, { solved: true, ms: 38_400 })).toBe('ChessPage Timer 12\n⏱️ 0:38');
+  expect(timerShareText(12, { solved: false, ms: 60_000 })).toBe('ChessPage Timer 12\n⏱️ X');
+  expect(timerShareText(12, { solved: true, ms: 9_000 }, true)).toBe('ChessPage Timer test\n⏱️ 0:09');
 });
 
 test('Practice levels up after a quick, clean solve', () => {

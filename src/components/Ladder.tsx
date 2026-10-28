@@ -161,7 +161,7 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
           <>
             Puzzle {index + 1} of {LADDER_SIZE} · {LEVELS[index]}
             <span className="lives" aria-label={`${lives} of ${LIVES} lives left`}>
-              {Array.from({ length: LIVES }, (_, i) => <span key={i} className={i < lives ? 'on' : ''}>♥</span>)}
+              {Array.from({ length: LIVES }, (_, i) => <span key={i} className={i < lives ? 'on' : ''} />)}
             </span>
           </>
         )}

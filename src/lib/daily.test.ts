@@ -1,4 +1,4 @@
-import { dailyLadder, dayNumber, LADDER_SIZE, LEVELS, localDateKey, msUntilMidnight, randomLadder, randomPuzzle, type Pool } from './daily';
+import { dailyLadder, dailyTimer, dayNumber, LADDER_SIZE, LEVELS, localDateKey, msUntilMidnight, randomLadder, randomPuzzle, type Pool } from './daily';
 
 const level = (l: number): Pool[number] =>
   Array.from({ length: 365 }, (_, i) => [`l${l}-${i}`, '8/8/8/8/8/8/8/8 w - - 0 1', 'a1a2 a2a3', LEVELS[l]] as [string, string, string, number]);
@@ -33,6 +33,18 @@ test('dailyLadder never repeats a puzzle within 365 days', () => {
     for (let d = 0; d < 365; d++) ids.add(dailyLadder(localDateKey(new Date(2026, 9, 23 + d)), pool)[l].id);
     expect(ids.size).toBe(365);
   }
+});
+
+test('dailyTimer is one 1600 puzzle a day that never matches the ladder', () => {
+  const seen = new Set<string>();
+  for (let d = 0; d < 365; d++) {
+    const key = localDateKey(new Date(2026, 9, 23 + d));
+    const t = dailyTimer(key, pool);
+    expect(t).toMatchObject({ level: 3, rating: 1600 });
+    expect(t.id).not.toBe(dailyLadder(key, pool)[3].id);
+    seen.add(t.id);
+  }
+  expect(seen.size).toBe(365);
 });
 
 test('randomPuzzle picks from one level; randomLadder from each ladder level', () => {

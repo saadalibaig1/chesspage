@@ -4,10 +4,11 @@ import type { usePuzzle } from './usePuzzle';
 
 type G = ReturnType<typeof usePuzzle>;
 
-export function Stage({ g, coords, onMove }: { g: G; coords: boolean; onMove: (from: Sq, to: Sq) => void }) {
+/** veiled = blurred, so a timed puzzle can't be studied before the clock starts. */
+export function Stage({ g, coords, onMove, veiled = false }: { g: G; coords: boolean; onMove: (from: Sq, to: Sq) => void; veiled?: boolean }) {
   const r = g.run;
   return (
-    <main className="stage">
+    <main className={`stage${veiled ? ' veiled' : ''}`} aria-hidden={veiled || undefined}>
       {r && (
         <Board
           run={r}
