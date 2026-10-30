@@ -3,14 +3,13 @@ import { Ladder } from './components/Ladder';
 import { TimerMode } from './components/TimerMode';
 import { Icon } from './components/Icon';
 import { PieceSprite } from './components/pieces';
-import { HelpModal, LeaderboardModal, SettingsModal, StatsModal } from './components/Modals';
+import { HelpModal, SettingsModal, StatsModal } from './components/Modals';
 import { dailyLadder, dailyTimer, dayNumber, localDateKey, msUntilMidnight, randomLadder, randomPuzzle, TIMER_LEVEL, type Pool, type Puzzle } from './lib/daily';
 import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
-import { detectCountry } from './lib/country';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
 
-type Modal = null | 'help' | 'stats' | 'leaderboard' | 'settings';
+type Modal = null | 'help' | 'stats' | 'settings';
 type Toast = { id: number; text: string };
 
 const MODES: [Mode, string][] = [['ladder', 'Daily'], ['timer', 'Timer']];
@@ -28,7 +27,6 @@ export default function App() {
 
   const mode = store.mode;
   const test = store.settings.testMode;
-  const country = store.country ?? detectCountry();
 
   const update = useCallback((fn: (s: Store) => Store) => {
     setStore((prev) => {
@@ -115,15 +113,13 @@ export default function App() {
       <PieceSprite />
       <header className="header">
         <div className="side">
-          <button type="button" className="icon" onClick={() => setModal('leaderboard')} aria-label="Leaderboard">
-            <Icon name="trophy" />
+          <button type="button" className="icon" onClick={() => setModal('help')} aria-label="How to play">
+            <Icon name="help" />
           </button>
         </div>
         <h1 className="brand">ChessPage</h1>
         <div className="side right">
-          <button type="button" className="icon" onClick={() => setModal('help')} aria-label="How to play">
-            <Icon name="help" />
-          </button>
+
           <button type="button" className="icon" onClick={() => setModal('stats')} aria-label="Statistics">
             <Icon name="stats" />
           </button>
@@ -190,12 +186,7 @@ export default function App() {
           result={test ? lastResult : null}
           test={test}
           onClose={closeModal}
-          onLeaderboard={() => setModal('leaderboard')}
         />
-      )}
-      {modal === 'leaderboard' && (
-        <LeaderboardModal date={today} country={country} store={store}
-          onCountry={(iso) => update((s) => ({ ...s, country: iso }))} onClose={closeModal} />
       )}
       {modal === 'settings' && <SettingsModal settings={store.settings} onSetting={onSetting} onClose={closeModal} />}
     </div>

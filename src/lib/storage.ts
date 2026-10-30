@@ -9,7 +9,6 @@ export type Progress = { date: string; current: Record<number, Current> };
 export type Store = {
   introSeen: boolean;
   mode: Mode;
-  country?: string;
   settings: Settings;
   ladder: { history: Record<string, DayResult>; progress?: Progress };
   /** progress = a run in play: time used and wrong moves so far, so a reload resumes the clock. */
@@ -39,7 +38,6 @@ export function load(): Store {
     return {
       introSeen: s.introSeen ?? base.introSeen,
       mode: MODES.includes(s.mode) ? s.mode : base.mode, // a removed mode (Practice) falls back to Daily
-      ...(s.country && { country: s.country }),
       settings: { ...base.settings, ...s.settings },
       ladder: { history: migrate(ladder.history), ...(ladder.progress && !('index' in ladder.progress) && { progress: ladder.progress }) },
       timer: { ...base.timer, ...s.timer },

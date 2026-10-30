@@ -6,7 +6,7 @@ The look is light mode only, simple, and modelled on Wordle's layout, palette an
 
 | Region | Size | Content |
 |---|---|---|
-| Header | 56px, 1px bottom rule | Leaderboard icon on the left; bold serif **ChessPage** centred; help, stats and settings icons on the right |
+| Header | 56px, 1px bottom rule | Help icon on the left; bold serif **ChessPage** centred; stats and settings icons on the right |
 | Mode tabs | 44px | Segmented control: Daily, Timer. The active tab is a white pill on light grey |
 | Top row | 40px | Daily: six level tiles numbered 1–6; each is a button, so any level can be picked. The selected one has a dark border (a dark ring once colored). Timer: the 1-minute countdown clock (red under 10s). The board is blurred and faded until Start, with a large green Start key centered on it |
 | Subtitle | 22px | Daily in play: dark 16px "Level 3 · **1400** Elo" plus five try dots (filled = left, hollow = used). Otherwise uppercase grey 12px, e.g. "The idea: Fork" |

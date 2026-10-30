@@ -20,7 +20,7 @@ ChessPage is a Wordle-style daily chess puzzle destination. Each day everyone ge
 
 ## Positioning
 
-Finite, shared and social, where chess.com and Lichess puzzles are endless solo grinding. One puzzle per day, the same for everyone, so results are comparable and worth sharing. Country leaderboards turn a solo puzzle into a light national competition.
+Finite, shared and social, where chess.com and Lichess puzzles are endless solo grinding. One puzzle per day, the same for everyone, so results are comparable and worth sharing.
 
 ## Operating Context
 
@@ -33,9 +33,8 @@ Finite, shared and social, where chess.com and Lichess puzzles are endless solo 
 ## Capabilities and Constraints
 
 - Results are Wordle-style: solved/played, average solved, current and max streak (days played). The share has one row per played level: a pawn per wrong move, a crown for the solve. There are no points.
-- Leaderboards are country-based only, with three categories: average climb, share who climbed all six, and streak. No individual user leaderboard in v1.
-- The country is inferred on the client (no backend). Country leaderboard data is simulated in this prototype, with the player's own result merged into their country.
-- No sign-in in v1. Google SSO was discussed for future individual leaderboards and is deferred.
+- No leaderboards yet. The simulated country leaderboard was removed at launch on chesspage.com (2026-10-30); real leaderboards need a backend.
+- No sign-in in v1. Google SSO was discussed for future leaderboards and is deferred.
 - Puzzles come from the Lichess open puzzle database (CC0), are curated by rating band, and never repeat day to day.
 
 ## Brand Commitments
@@ -46,12 +45,12 @@ Finite, shared and social, where chess.com and Lichess puzzles are endless solo 
 
 ## Evidence on Hand
 
-No real user data, leaderboard data or testimonials exist. Leaderboard numbers in the prototype are synthetic and must be labeled as such where a visitor could mistake them for real.
+No real user data or testimonials exist. Do not show synthetic numbers to visitors.
 
 ## Product Principles
 
 1. Five minutes, then done: the finite daily ladder is the product, not a limitation.
-2. Everyone plays the same board: comparability makes sharing and leaderboards meaningful.
+2. Everyone plays the same board: comparability makes sharing meaningful.
 3. Forgiving, never punishing: a repeated mistake is free, and the climb always ends with the solution explained.
 4. The streak is the hook: protect it and celebrate it.
 5. Shareable in plain text: results must survive a paste into any chat.

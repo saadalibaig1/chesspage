@@ -1,0 +1,16 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.chesspage.com" }],
+      "destination": "https://chesspage.com/$1",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "chesspage-theta.vercel.app" }],
+      "destination": "https://chesspage.com/$1",
+      "permanent": false
+    }
+  ]
+}
