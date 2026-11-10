@@ -63,8 +63,9 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
   if (a) headers.authorization = a;
   if (body !== undefined) headers['content-type'] = 'application/json';
   const r = await fetch(`/api${path}`, { method: body === undefined ? 'GET' : 'POST', headers, body: body === undefined ? undefined : JSON.stringify(body) });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error((j as { error?: string }).error ?? 'Something went wrong.');
+  // Anything but a JSON object (an outage page, a proxy error) counts as a failure, never as data.
+  const j: unknown = await r.json().catch(() => null);
+  if (!r.ok || !j || typeof j !== 'object') throw new Error((j as { error?: string } | null)?.error ?? 'Something went wrong.');
   return j as T;
 }
 

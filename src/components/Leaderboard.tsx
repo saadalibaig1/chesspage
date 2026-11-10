@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Sheet } from './Sheet';
 import { api, devUser, setDevUser, signInWithGoogle, type Board, type BoardRow, type Profile } from '../lib/api';
-import { COUNTRIES, countryName, flag, isCountry } from '../lib/countries';
+import { flag, isCountry } from '../lib/countries';
+import { CountryPicker } from './CountryPicker';
 import { formatTime } from '../lib/results';
 
 const PICK_KEY = 'chesspage:board-country';
@@ -17,14 +18,6 @@ function startCountry(profile: Profile | null): string {
   }
   const region = navigator.language.split('-')[1]?.toUpperCase() ?? '';
   return isCountry(region) ? region : 'US';
-}
-
-function CountrySelect({ value, onChange, label }: { value: string; onChange: (c: string) => void; label: string }) {
-  return (
-    <select className="select" value={value} aria-label={label} onChange={(e) => onChange(e.target.value)}>
-      {COUNTRIES.map((c) => <option key={c} value={c}>{`${flag(c)} ${countryName(c)}`}</option>)}
-    </select>
-  );
 }
 
 function Row({ r, you }: { r: BoardRow; you: boolean }) {
@@ -56,7 +49,10 @@ export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
     setError('');
     const q = tab === 'country' ? `&country=${country}` : '';
     api<Board>(`/board?date=${today}${q}`)
-      .then((b) => live && setBoard(b))
+      .then((b) => {
+        if (!Array.isArray(b.rows)) throw new Error('Couldn’t load the leaderboard.');
+        if (live) setBoard(b);
+      })
       .catch((e: Error) => live && setError(e.message));
     return () => {
       live = false;
@@ -84,7 +80,7 @@ export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
           🌍 World
         </button>
       </div>
-      {tab === 'country' && <CountrySelect value={country} onChange={pick} label="Country board" />}
+      {tab === 'country' && <CountryPicker value={country} onChange={pick} label="Country board" />}
 
       {error ? (
         <p className="center muted small">{error}</p>
@@ -202,11 +198,11 @@ export function AccountModal({ profile, onSaved, onClose }: AccountProps) {
           <input value={name} onChange={(e) => setName(e.target.value)} maxLength={15} autoComplete="nickname" autoCapitalize="none" spellCheck={false} data-autofocus />
           <small>3–15 letters, numbers or _. Others see this on the leaderboard.</small>
         </label>
-        <label>
+        <div className="field">
           <span>Country</span>
-          <CountrySelect value={country} onChange={setCountry} label="Your country" />
+          <CountryPicker value={country} onChange={setCountry} label="Your country" />
           <small>If you already played today, a change counts from tomorrow.</small>
-        </label>
+        </div>
         {error && <p className="error" role="alert">{error}</p>}
         <button type="submit" className="key go wide" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
       </form>

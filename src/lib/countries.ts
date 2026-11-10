@@ -24,3 +24,22 @@ export function countryName(code: string): string {
 
 /** Every country code, sorted by English name. */
 export const COUNTRIES = [...SET].sort((a, b) => countryName(a).localeCompare(countryName(b)));
+
+const plain = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
+/** Countries matching the typed text: exact code, then names that start with it, then a word that does, then any match. */
+export function searchCountries(text: string): string[] {
+  const q = plain(text.trim());
+  if (!q) return COUNTRIES;
+  const score = (c: string) => {
+    const name = plain(countryName(c));
+    if (c.toLowerCase() === q) return 0;
+    if (name.startsWith(q)) return 1;
+    if (name.split(/[\s(&.-]+/).some((w) => w.startsWith(q))) return 2;
+    return name.includes(q) ? 3 : 9;
+  };
+  return COUNTRIES.map((c) => [c, score(c)] as const)
+    .filter(([, s]) => s < 9)
+    .sort((a, b) => a[1] - b[1])
+    .map(([c]) => c);
+}

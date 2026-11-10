@@ -1050,8 +1050,110 @@ input[role='switch']:checked::after {
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
 }
 
+/* Country picker: a button that opens a search field and a list. */
+.picker {
+  margin-bottom: 4px;
+}
+
+.picker-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+}
+
+.picker-button:hover {
+  border-color: var(--text);
+}
+
+.picker .flag {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.picker .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker.open {
+  border: 1px solid var(--text);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+}
+
+.picker-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.picker-search input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* 16px stops iOS zooming in on focus */
+}
+
+.picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.picker-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.picker-list li.active {
+  background: #f0f1f3;
+}
+
+.picker-list li[aria-selected='true'] {
+  font-weight: 700;
+}
+
+.picker-list li svg {
+  color: var(--green);
+}
+
+.picker-list li.none {
+  color: var(--muted);
+  cursor: default;
+}
+
 .select,
-.form input {
+.form label input {
   width: 100%;
   height: 44px;
   padding: 0 12px;
@@ -1125,12 +1227,14 @@ input[role='switch']:checked::after {
   margin-top: 8px;
 }
 
-.form label {
+.form label,
+.form .field {
   display: grid;
   gap: 6px;
 }
 
-.form label > span {
+.form label > span,
+.form .field > span {
   font-weight: 700;
 }
 
