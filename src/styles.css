@@ -1145,6 +1145,35 @@ input[role='switch']:checked::after {
   font-size: 14px;
 }
 
+.signin {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.signin .lead {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  border: 1px solid #747775;
+  border-radius: 999px;
+  background: #fff;
+  color: #1f1f1f;
+  font: 500 15px var(--sans);
+}
+
+.google:hover {
+  background: #f8f9fa;
+}
+
 .link-button {
   display: block;
   margin: 16px auto 0;

@@ -26,6 +26,8 @@ type Props = {
   paused: boolean;
   toast: (msg: string, ms?: number) => void;
   onComplete: (r: DayResult) => void;
+  /** A level just finished (solved or not). */
+  onLevelDone?: () => void;
   onShowStats: () => void;
 };
 
@@ -42,7 +44,7 @@ function nextOpen(d: DayResult, from = 0): number {
 }
 
 /** The daily ladder: six levels from 1000 to 2000. Play any of them, in any order, with five tries on each. */
-export function Ladder({ set, today, store, update, start, ranked, test, paused, toast, onComplete, onShowStats }: Props) {
+export function Ladder({ set, today, store, update, start, ranked, test, paused, toast, onComplete, onLevelDone, onShowStats }: Props) {
   const g = usePuzzle(paused);
   const [day, setDay] = useState<DayResult>(() => (!test && store.ladder.history[today]) || emptyDay());
   const [current, setCurrent] = useState<Record<number, Current>>(() => (test ? {} : loadProgress(store, today).current));
@@ -117,6 +119,7 @@ export function Ladder({ set, today, store, update, start, ranked, test, paused,
     setCurrent(({ [i]: _, ...rest }) => rest);
     if (!test) update((s) => recordDay(s, today, next, i));
     toast(levelWord(r), 2000);
+    if (!test) onLevelDone?.();
     if (nextOpen(next) >= 0) return;
     // All six played: celebrate, then show the stats.
     if (next.n > 0) play('complete');

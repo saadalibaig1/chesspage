@@ -30,6 +30,33 @@ async function auth(): Promise<string | null> {
 
 export const signedIn = () => devUser() !== null;
 
+/** Google sign-in works once the client's Firebase config is in the build (VITE_FIREBASE_API_KEY). */
+export const googleReady = Boolean(import.meta.env.VITE_FIREBASE_API_KEY);
+
+export async function signInWithGoogle(): Promise<void> {
+  // Firebase sign-in (same-tab redirect) plugs in here once the client's config arrives.
+  throw new Error('Google sign-in isn’t ready yet. It’s coming soon.');
+}
+
+const ASKED_KEY = 'chesspage:login-asked';
+
+/** The one-time sign-in prompt shows once per browser. */
+export function loginAsked(): boolean {
+  try {
+    return localStorage.getItem(ASKED_KEY) === '1';
+  } catch {
+    return true;
+  }
+}
+
+export function setLoginAsked() {
+  try {
+    localStorage.setItem(ASKED_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+}
+
 export async function api<T>(path: string, body?: unknown): Promise<T> {
   const a = await auth();
   const headers: Record<string, string> = {};

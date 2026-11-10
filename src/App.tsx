@@ -9,11 +9,11 @@ import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
-import { ACCOUNTS, api, signedIn, type Profile } from './lib/api';
+import { ACCOUNTS, api, loginAsked, setLoginAsked, signedIn, type Profile } from './lib/api';
 import { countryName, flag } from './lib/countries';
-import { AccountModal, LeaderboardModal } from './components/Leaderboard';
+import { AccountModal, LeaderboardModal, SignInModal } from './components/Leaderboard';
 
-type Modal = null | 'help' | 'stats' | 'settings' | 'board' | 'account';
+type Modal = null | 'help' | 'stats' | 'settings' | 'board' | 'account' | 'signin';
 type Toast = { id: number; text: string };
 
 const MODES: [Mode, string][] = [['ladder', 'Daily'], ['timer', 'Timer']];
@@ -128,6 +128,12 @@ export default function App() {
     setLastResult(r);
     setModal('stats');
   }, []);
+  // After the first finished level, offer sign-in once. Skipped if another sheet is open by then.
+  const onLevelDone = useCallback(() => {
+    if (!ACCOUNTS || signedIn() || loginAsked()) return;
+    setLoginAsked();
+    setTimeout(() => setModal((m) => m ?? 'signin'), 2200);
+  }, []);
   const toModal = useCallback((m: Modal) => () => setModal(m), []);
 
   return (
@@ -207,6 +213,7 @@ export default function App() {
           paused={modal !== null}
           toast={toast}
           onComplete={onComplete}
+          onLevelDone={onLevelDone}
           onShowStats={toModal('stats')}
         />
       )}
@@ -233,7 +240,8 @@ export default function App() {
           } : undefined}
         />
       )}
-      {modal === 'board' && <LeaderboardModal today={today} profile={profile} onClose={closeModal} />}
+      {modal === 'signin' && <SignInModal onClose={closeModal} />}
+      {modal === 'board' && <LeaderboardModal today={today} profile={profile} onSignIn={() => setModal('account')} onClose={closeModal} />}
       {modal === 'account' && (
         <AccountModal
           profile={profile}

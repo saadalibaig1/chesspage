@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Sheet } from './Sheet';
-import { api, devUser, setDevUser, type Board, type BoardRow, type Profile } from '../lib/api';
+import { api, devUser, setDevUser, signInWithGoogle, type Board, type BoardRow, type Profile } from '../lib/api';
 import { COUNTRIES, countryName, flag, isCountry } from '../lib/countries';
 import { formatTime } from '../lib/results';
 
@@ -41,10 +41,10 @@ function Row({ r, you }: { r: BoardRow; you: boolean }) {
   );
 }
 
-type Props = { today: string; profile: Profile | null; onClose: () => void };
+type Props = { today: string; profile: Profile | null; onSignIn: () => void; onClose: () => void };
 
 /** Today's board for a country, or the world. Guests can look; signed-in players appear on it. */
-export function LeaderboardModal({ today, profile, onClose }: Props) {
+export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
   const [tab, setTab] = useState<'country' | 'world'>('country');
   const [country, setCountry] = useState(() => startCountry(profile));
   const [board, setBoard] = useState<Board | null>(null);
@@ -102,7 +102,54 @@ export function LeaderboardModal({ today, profile, onClose }: Props) {
           </ol>
         </>
       )}
-      {!profile?.username && <p className="center muted small">Sign in to appear on the leaderboard.</p>}
+      {!profile?.username && (
+        <button type="button" className="link-button" onClick={onSignIn}>Sign in to appear on the leaderboard</button>
+      )}
+    </Sheet>
+  );
+}
+
+function GoogleMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.8c4.3-4 6.9-9.9 6.9-17.2z" />
+      <path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.8c-2.1 1.4-4.8 2.3-8.5 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z" />
+    </svg>
+  );
+}
+
+/** "Sign in with Google": one key, with the reason to sign in. */
+function SignInPanel() {
+  const [error, setError] = useState('');
+  async function go() {
+    setError('');
+    try {
+      await signInWithGoogle();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+  return (
+    <div className="signin">
+      <p className="lead center">Save your streak on every device and join your country’s leaderboard.</p>
+      <button type="button" className="google" onClick={go} data-autofocus>
+        <GoogleMark /> Sign in with Google
+      </button>
+      {error && <p className="error center" role="alert">{error}</p>}
+      <p className="center muted small">Optional. You can always play without an account.</p>
+    </div>
+  );
+}
+
+/** Shown once, after the first finished level. */
+export function SignInModal({ onClose }: { onClose: () => void }) {
+  return (
+    <Sheet title="Sign in" onClose={onClose}>
+      <h3 className="caps">Keep your streak</h3>
+      <SignInPanel />
+      <button type="button" className="link-button" onClick={onClose}>Not now</button>
     </Sheet>
   );
 }
@@ -135,13 +182,12 @@ export function AccountModal({ profile, onSaved, onClose }: AccountProps) {
     return (
       <Sheet title="Account" onClose={onClose}>
         <h3 className="caps">Account</h3>
-        {import.meta.env.DEV ? (
+        <SignInPanel />
+        {import.meta.env.DEV && (
           <form className="form" onSubmit={(e) => (e.preventDefault(), dev.trim() && (setDevUser(dev.trim()), onSaved(null), onClose()))}>
-            <label><span>Test sign-in (dev only)</span><input value={dev} onChange={(e) => setDev(e.target.value)} placeholder="any name" data-autofocus /></label>
-            <button type="submit" className="key go wide">Sign in</button>
+            <label><span>Test sign-in (dev only)</span><input value={dev} onChange={(e) => setDev(e.target.value)} placeholder="any name" /></label>
+            <button type="submit" className="key wide">Test sign-in</button>
           </form>
-        ) : (
-          <p className="center muted small">Sign-in is coming soon.</p>
         )}
       </Sheet>
     );
