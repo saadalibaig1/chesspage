@@ -32,7 +32,7 @@ Finite, shared and social, where chess.com and Lichess puzzles are endless solo 
 
 ## Capabilities and Constraints
 
-- Results are Wordle-style: solved/played, average solved, current and max streak (days played). The share has one row per played level: a pawn per wrong move, a crown for the solve. There are no points.
+- Results are Wordle-style: solved/played, average solved, current and max streak (days played). The share has one row per played level: a pawn per wrong move, a crown for the solve. There are no points. Each level also has a link (`/1` to `/6`) that opens that level of today's Daily, never a past day.
 - No leaderboards yet. The simulated country leaderboard was removed at launch on chesspage.com (2026-10-30); real leaderboards need a backend.
 - No sign-in in v1. Google SSO was discussed for future leaderboards and is deferred.
 - Puzzles come from the Lichess open puzzle database (CC0), are curated by rating band, and never repeat day to day.

@@ -536,6 +536,13 @@ button {
   min-width: 88px;
 }
 
+.key.link {
+  min-width: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
 /* ---------- Board ---------- */
 
 .board {

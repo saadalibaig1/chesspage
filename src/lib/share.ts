@@ -1,8 +1,11 @@
-/** Native share sheet on phones, clipboard elsewhere, with a fallback for old browsers. */
-export async function shareOrCopy(text: string): Promise<void> {
+/** Native share sheet on phones, clipboard elsewhere, with a fallback for old browsers. Returns 'copied' when it used the clipboard. */
+export async function shareOrCopy(text: string): Promise<'shared' | 'copied'> {
   try {
-    if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ text });
-    else await navigator.clipboard.writeText(text);
+    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+      await navigator.share({ text });
+      return 'shared';
+    }
+    await navigator.clipboard.writeText(text);
   } catch {
     const t = document.createElement('textarea');
     t.value = text;
@@ -11,4 +14,5 @@ export async function shareOrCopy(text: string): Promise<void> {
     document.execCommand('copy');
     t.remove();
   }
+  return 'copied';
 }

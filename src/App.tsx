@@ -8,6 +8,7 @@ import { dailyLadder, dailyTimer, dayNumber, localDateKey, msUntilMidnight, rand
 import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
+import { levelFromPath } from './lib/links';
 
 type Modal = null | 'help' | 'stats' | 'settings';
 type Toast = { id: number; text: string };
@@ -15,7 +16,9 @@ type Toast = { id: number; text: string };
 const MODES: [Mode, string][] = [['ladder', 'Daily'], ['timer', 'Timer']];
 
 export default function App() {
-  const [store, setStore] = useState<Store>(load);
+  // A level link (/1 to /6) opens that level of today's Daily.
+  const [linkLevel, setLinkLevel] = useState(() => levelFromPath(location.pathname));
+  const [store, setStore] = useState<Store>(() => (linkLevel === null ? load() : { ...load(), mode: 'ladder' }));
   const [today, setToday] = useState(localDateKey);
   const [pool, setPool] = useState<Pool | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -132,7 +135,13 @@ export default function App() {
       <nav className="modes" role="tablist" aria-label="Mode">
         {MODES.map(([m, label]) => (
           <button key={m} type="button" role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''}
-            onClick={() => update((s) => ({ ...s, mode: m }))}>
+            onClick={() => {
+              if (m !== 'ladder' && linkLevel !== null) {
+                setLinkLevel(null);
+                history.replaceState(null, '', '/');
+              }
+              update((s) => ({ ...s, mode: m }));
+            }}>
             {label}
           </button>
         ))}
@@ -169,6 +178,7 @@ export default function App() {
           today={today}
           store={store}
           update={update}
+          start={linkLevel}
           test={test}
           paused={modal !== null}
           toast={toast}

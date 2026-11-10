@@ -6,6 +6,9 @@ import type { Sq } from '../lib/puzzle';
 import { emptyDay, levelWord, TRIES, triesLeft, withLevel, type DayResult, type LevelResult } from '../lib/results';
 import { loadProgress, recordDay, type Current, type Store } from '../lib/storage';
 import { themeLabel } from '../lib/themes';
+import { levelFromPath, levelShareText } from '../lib/links';
+import { shareOrCopy } from '../lib/share';
+import { Icon } from './Icon';
 import { buzz, play } from '../lib/sound';
 
 type Props = {
@@ -13,6 +16,8 @@ type Props = {
   today: string;
   store: Store;
   update: (fn: (s: Store) => Store) => void;
+  /** The level a shared link opened, if any. */
+  start: number | null;
   test: boolean;
   paused: boolean;
   toast: (msg: string, ms?: number) => void;
@@ -33,11 +38,11 @@ function nextOpen(d: DayResult, from = 0): number {
 }
 
 /** The daily ladder: six levels from 1000 to 2000. Play any of them, in any order, with five tries on each. */
-export function Ladder({ set, today, store, update, test, paused, toast, onComplete, onShowStats }: Props) {
+export function Ladder({ set, today, store, update, start, test, paused, toast, onComplete, onShowStats }: Props) {
   const g = usePuzzle(paused);
   const [day, setDay] = useState<DayResult>(() => (!test && store.ladder.history[today]) || emptyDay());
   const [current, setCurrent] = useState<Record<number, Current>>(() => (test ? {} : loadProgress(store, today).current));
-  const [sel, setSel] = useState(() => Math.max(0, nextOpen(day)));
+  const [sel, setSel] = useState(() => start ?? Math.max(0, nextOpen(day)));
   const [bounce, setBounce] = useState(false);
 
   const cur = current[sel] ?? FRESH;
@@ -45,12 +50,14 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
 
   function open(i: number) {
     setSel(i);
+    // Opened from a level link: keep the address on the level in view.
+    if (levelFromPath(location.pathname) !== null) history.replaceState(null, '', `/${i + 1}`);
     if (day.levels[i]) return g.show(set[i], true);
     g.start(set[i], current[i]?.tried ?? []);
   }
 
   useEffect(() => {
-    const i = nextOpen(day);
+    const i = start ?? nextOpen(day);
     open(i < 0 ? LADDER_SIZE - 1 : i);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -101,6 +108,10 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
       return;
     }
     if (res === 'solved') finishLevel(i, { mistakes: cur.mistakes, hinted: cur.hinted, failed: false, timeMs: g.elapsed() });
+  }
+
+  async function onShare() {
+    if ((await shareOrCopy(levelShareText(location.origin, sel))) === 'copied') toast('Link copied');
   }
 
   function onHint() {
@@ -158,6 +169,9 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
           <>
             <SolutionLine g={g} title={title} />
             <div className="keys">
+              <button type="button" className="key link" onClick={onShare} aria-label={`Share a link to level ${sel + 1}`}>
+                <Icon name="share" size={20} />
+              </button>
               <button type="button" className="key" onClick={g.replay} disabled={g.phase === 'revealing'}>Replay</button>
               {following >= 0 ? (
                 <button type="button" className="key go" onClick={() => open(following)} disabled={g.phase === 'revealing' && !g.replaying}>
@@ -172,6 +186,9 @@ export function Ladder({ set, today, store, update, test, paused, toast, onCompl
           <>
             <StatusLine g={g} />
             <div className="keys">
+              <button type="button" className="key link" onClick={onShare} aria-label={`Share a link to level ${sel + 1}`}>
+                <Icon name="share" size={20} />
+              </button>
               {!store.settings.hard && (
                 <button type="button" className="key" onClick={onHint} disabled={g.phase !== 'play' || !!g.hintTo}
                   aria-label={g.hintSq ? 'Hint: show the path' : 'Hint: show the piece to move'}>
