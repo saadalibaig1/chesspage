@@ -81,7 +81,7 @@ export default function App() {
     function refresh() {
       if (document.hidden) return;
       const fresh = loadIfAvailable();
-      if (fresh) setStore(fresh);
+      if (fresh) setStore((s) => ({ ...fresh, mode: s.mode })); // the mode on screen stays: a level link may have opened Daily
       if (localDateKey() !== today) setToday(localDateKey());
     }
     document.addEventListener('visibilitychange', refresh);

@@ -39,6 +39,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         </div>
         <p className="small">Played four levels and solved three: <b>3/4</b>.</p>
         <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Hard Mode turns hints off and keeps the idea hidden until the end.</p>
+        <p className="small">On a computer, right-click and drag to draw an arrow, or right-click a square to mark it. Hold Shift, Alt or Ctrl for other colours. Left-click to clear.</p>
         <hr />
         <p className="small"><b>Timer:</b> one {LEVELS[TIMER_LEVEL]} puzzle a day, the same for everyone. Solve it in under a minute.</p>
         <hr />

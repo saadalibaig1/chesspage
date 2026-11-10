@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import type { Color, PuzzleRun, Sq } from '../lib/puzzle';
 import { Piece } from './pieces';
+import { arrowPath, paintFor, toggleDrawing, type Drawing, type Keys } from '../lib/drawings';
 
 const FILES = 'abcdefgh';
 const NAMES: Record<string, string> = { k: 'king', q: 'queen', r: 'rook', b: 'bishop', n: 'knight', p: 'pawn' };
@@ -35,6 +36,10 @@ export function Board({ run, version, orientation: o, coords, hintSq, hintTo, sh
   const [focusSq, setFocusSq] = useState<Sq>(o === 'w' ? 'e2' : 'e7');
   const drag = useRef<{ from: Sq; el: HTMLElement; x0: number; y0: number; moved: boolean; reselect: boolean } | null>(null);
   const dropped = useRef<Sq | null>(null);
+  // Right-click arrows and squares (desktop), cleared by a left click or a new puzzle.
+  const [drawings, setDrawings] = useState<Drawing[]>([]);
+  const [pending, setPending] = useState<Drawing | null>(null);
+  const rdrag = useRef<{ from: Sq; keys: Keys } | null>(null);
 
   // Stable piece identities so a moved piece is the same element and slides via CSS.
   const ids = useRef<{ map: Map<Sq, number>; next: number; key: string }>({ map: new Map(), next: 1, key: '' });
@@ -75,6 +80,7 @@ export function Board({ run, version, orientation: o, coords, hintSq, hintTo, sh
     : undefined;
 
   useEffect(() => setSelected(null), [version, interactive]);
+  useEffect(() => setDrawings([]), [run]);
 
   // Drop: the piece is already under the pointer, so skip the slide for that one render.
   useLayoutEffect(() => {
@@ -104,6 +110,15 @@ export function Board({ run, version, orientation: o, coords, hintSq, hintTo, sh
   }
 
   function onPointerDown(e: PointerEvent) {
+    // A right-click, or Ctrl+click (a Mac's right-click), starts an arrow. Cmd stands in for Ctrl on a Mac.
+    if (e.pointerType === 'mouse' && (e.button === 2 || (e.button === 0 && e.ctrlKey))) {
+      const from = squareFromPoint(e.clientX, e.clientY);
+      if (!from) return;
+      rdrag.current = { from, keys: { ctrl: (e.button === 2 && e.ctrlKey) || e.metaKey, alt: e.altKey, shift: e.shiftKey } };
+      boardRef.current!.setPointerCapture(e.pointerId);
+      return;
+    }
+    if (e.button === 0 && drawings.length) setDrawings([]);
     if (!interactive || e.button > 0) return;
     const sq = squareFromPoint(e.clientX, e.clientY);
     if (!sq) return;
@@ -118,6 +133,11 @@ export function Board({ run, version, orientation: o, coords, hintSq, hintTo, sh
   }
 
   function onPointerMove(e: PointerEvent) {
+    const r = rdrag.current;
+    if (r) {
+      const to = squareFromPoint(e.clientX, e.clientY);
+      return setPending(to && to !== r.from ? { from: r.from, to, color: paintFor('arrow', r.keys) } : null);
+    }
     const d = drag.current;
     if (!d) return;
     const dx = e.clientX - d.x0;
@@ -129,6 +149,14 @@ export function Board({ run, version, orientation: o, coords, hintSq, hintTo, sh
   }
 
   function onPointerUp(e: PointerEvent) {
+    const r = rdrag.current;
+    if (r) {
+      rdrag.current = null;
+      setPending(null);
+      const to = squareFromPoint(e.clientX, e.clientY);
+      if (to) setDrawings((l) => toggleDrawing(l, { from: r.from, to, color: paintFor(to === r.from ? 'square' : 'arrow', r.keys) }));
+      return;
+    }
     const d = drag.current;
     drag.current = null;
     if (!d) return;
@@ -171,6 +199,7 @@ export function Board({ run, version, orientation: o, coords, hintSq, hintTo, sh
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
       onKeyDown={onKeyDown}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {Array.from({ length: 64 }, (_, i) => {
         const col = i % 8;
@@ -195,6 +224,7 @@ export function Board({ run, version, orientation: o, coords, hintSq, hintTo, sh
             type="button"
             className={cls}
             data-square={sq}
+            data-paint={drawings.find((d) => d.from === sq && d.to === sq)?.color}
             tabIndex={sq === focusSq ? 0 : -1}
             aria-label={label}
             aria-pressed={sq === selected || undefined}
@@ -223,28 +253,34 @@ export function Board({ run, version, orientation: o, coords, hintSq, hintTo, sh
           );
         })}
       </div>
-      {hintSq && hintTo && <HintArrow from={pos(hintSq, o)} to={pos(hintTo, o)} />}
+      {[...drawings, ...(pending ? [pending] : [])]
+        .filter((d) => d.from !== d.to)
+        .map((d) => <Arrow key={`${d.from}${d.to}`} points={arrowPath(pos(d.from, o), pos(d.to, o))} className={`drawn ${d.color}`} />)}
+      {hintSq && hintTo && <Arrow points={arrowPath(pos(hintSq, o), pos(hintTo, o)).filter((_, i, a) => i === 0 || i === a.length - 1)} className="hint-arrow" />}
     </div>
   );
 }
 
-/** Path hint: an arrow from the piece's square to its destination, in board units (0–8). */
-function HintArrow({ from, to }: { from: { col: number; row: number }; to: { col: number; row: number } }) {
-  const x1 = from.col + 0.5;
-  const y1 = from.row + 0.5;
-  const x2 = to.col + 0.5;
-  const y2 = to.row + 0.5;
-  const len = Math.hypot(x2 - x1, y2 - y1);
-  const ux = (x2 - x1) / len;
-  const uy = (y2 - y1) / len;
+/** An arrow along points in board units (0–8): a line from near the first centre, a head on the last. */
+function Arrow({ points, className }: { points: { x: number; y: number }[]; className: string }) {
+  const [p0, p1] = points;
+  const end = points[points.length - 1];
+  const prev = points[points.length - 2];
+  const unit = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    return { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
+  };
+  const u0 = unit(p0, p1);
+  const u = unit(prev, end);
   const head = 0.42;
-  const bx = x2 - ux * head; // base of the arrowhead
-  const by = y2 - uy * head;
+  const bx = end.x - u.x * head; // base of the arrowhead
+  const by = end.y - u.y * head;
   const w = 0.24;
+  const line = [{ x: p0.x + u0.x * 0.25, y: p0.y + u0.y * 0.25 }, ...points.slice(1, -1), { x: bx, y: by }];
   return (
-    <svg className="hint-arrow" viewBox="0 0 8 8" aria-hidden="true">
-      <line x1={x1 + ux * 0.25} y1={y1 + uy * 0.25} x2={bx} y2={by} strokeWidth={0.17} strokeLinecap="round" />
-      <polygon points={`${x2},${y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`} />
+    <svg className={`arrow ${className}`} viewBox="0 0 8 8" aria-hidden="true">
+      <polyline points={line.map((p) => `${p.x},${p.y}`).join(' ')} strokeWidth={0.17} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <polygon points={`${end.x},${end.y} ${bx - u.y * w},${by + u.x * w} ${bx + u.y * w},${by - u.x * w}`} />
     </svg>
   );
 }
