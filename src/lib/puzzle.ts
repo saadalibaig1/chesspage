@@ -1,5 +1,5 @@
 import { Chess, type Move } from 'chess.js';
-import type { Puzzle } from './daily';
+import type { Puzzle } from './daily.js';
 
 export type Sq = string;
 export type Color = 'w' | 'b';

@@ -21,3 +21,20 @@ npm run puzzles    # regenerate src/data/puzzles.json from the Lichess puzzle DB
 - **Hosting:** a plain static site. Import the repo into Vercel, which detects Vite automatically, then add your domain in Project → Settings → Domains.
 - **Docs:** see `docs/superpowers/specs/` for the spec and `DESIGN.md` for the design system.
 - **Credits:** puzzles from the [Lichess puzzle database](https://database.lichess.org/#puzzles) (CC0). Pieces are cburnett (CC BY-SA 3.0).
+
+## Accounts and leaderboards (in progress, off in production)
+
+Design: [docs/superpowers/specs/2026-11-10-accounts-leaderboard-design.md](docs/superpowers/specs/2026-11-10-accounts-leaderboard-design.md).
+
+- **Server:** Vercel Functions in `api/` (`day`, `play`, `timer`, `me`, `board`), logic in `server/`. The server checks every move with the same rules as the browser game. Every route returns 404 unless the env var `ACCOUNTS=1` is set.
+- **Database:** Neon Postgres (`chesspage-db`, from the Vercel Marketplace). Tables are in `server/schema.sql`. Create or update them with `npm run db:migrate`.
+- **Client:** the trophy (leaderboard) and the Account row in Settings show only when the build has `VITE_ACCOUNTS=1`. Production doesn't set it.
+- **Sign-in:** Firebase Google sign-in plugs into `auth()` in `src/lib/api.ts` and `identify()` in `server/auth.ts` (env `FIREBASE_PROJECT_ID`). Until then, dev builds have a test sign-in by name.
+
+Run locally with the API:
+
+```bash
+ACCOUNTS=1 ACCOUNTS_DEV_AUTH=1 vercel dev --listen 3000
+```
+
+Put `VITE_ACCOUNTS=1` in `.env.development.local`. Remove test users with `npm run db:clear-dev`.

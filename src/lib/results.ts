@@ -1,4 +1,4 @@
-import { LADDER_SIZE, LEVELS } from './daily';
+import { LADDER_SIZE, LEVELS } from './daily.js';
 
 export type Mode = 'ladder' | 'timer';
 /** One level of the day. failed = used all its tries. */

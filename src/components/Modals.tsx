@@ -112,9 +112,15 @@ export function StatsModal({ store, today, day, result, test, onClose }: StatsPr
   );
 }
 
-type SettingsProps = { settings: Settings; onSetting: (k: keyof Settings, v: boolean) => void; onClose: () => void };
+type SettingsProps = {
+  settings: Settings;
+  onSetting: (k: keyof Settings, v: boolean) => void;
+  onClose: () => void;
+  /** Shown only when accounts are on: opens the account sheet. */
+  account?: { label: string; open: () => void };
+};
 
-export function SettingsModal({ settings, onSetting, onClose }: SettingsProps) {
+export function SettingsModal({ settings, onSetting, onClose, account }: SettingsProps) {
   const rows: [keyof Settings, string, string][] = [
     ['hard', 'Hard Mode', 'No hints'],
     ['contrast', 'High Contrast Mode', 'For improved color vision'],
@@ -126,6 +132,14 @@ export function SettingsModal({ settings, onSetting, onClose }: SettingsProps) {
     <Sheet title="Settings" onClose={onClose}>
       <h3 className="caps">Settings</h3>
       <ul className="settings">
+        {account && (
+          <li>
+            <button type="button" className="row-button" onClick={account.open}>
+              <span><b>Account</b><small>{account.label}</small></span>
+              <Icon name="arrow" size={18} />
+            </button>
+          </li>
+        )}
         {rows.map(([k, label, hint]) => (
           <li key={k}>
             <label>

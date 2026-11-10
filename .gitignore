@@ -6,3 +6,4 @@ dist
 .claude
 .DS_Store
 *.tsbuildinfo
+.env*.local

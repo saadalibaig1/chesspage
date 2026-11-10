@@ -9,8 +9,11 @@ import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
+import { ACCOUNTS, api, signedIn, type Profile } from './lib/api';
+import { countryName, flag } from './lib/countries';
+import { AccountModal, LeaderboardModal } from './components/Leaderboard';
 
-type Modal = null | 'help' | 'stats' | 'settings';
+type Modal = null | 'help' | 'stats' | 'settings' | 'board' | 'account';
 type Toast = { id: number; text: string };
 
 const MODES: [Mode, string][] = [['ladder', 'Daily'], ['timer', 'Timer']];
@@ -28,6 +31,8 @@ export default function App() {
   const [modal, setModal] = useState<Modal>(store.introSeen ? null : 'help');
   const [lastResult, setLastResult] = useState<DayResult | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileNonce, setProfileNonce] = useState(0);
 
   const mode = store.mode;
   const test = store.settings.testMode;
@@ -58,6 +63,12 @@ export default function App() {
     toast(link.date < today ? 'That puzzle has ended. Here’s today’s.' : 'That puzzle isn’t out here yet. Here’s today’s.', 3000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Accounts (behind the VITE_ACCOUNTS flag): load the signed-in player's profile.
+  useEffect(() => {
+    if (!ACCOUNTS || !signedIn()) return setProfile(null);
+    api<Profile>('/me').then(setProfile).catch(() => setProfile(null));
+  }, [profileNonce]);
 
   useEffect(() => setSoundEnabled(store.settings.sound), [store.settings.sound]);
   useEffect(() => {
@@ -126,10 +137,14 @@ export default function App() {
           <button type="button" className="icon" onClick={() => setModal('help')} aria-label="How to play">
             <Icon name="help" />
           </button>
+          {ACCOUNTS && (
+            <button type="button" className="icon" onClick={() => setModal('board')} aria-label="Leaderboard">
+              <Icon name="trophy" />
+            </button>
+          )}
         </div>
         <h1 className="brand">ChessPage</h1>
         <div className="side right">
-
           <button type="button" className="icon" onClick={() => setModal('stats')} aria-label="Statistics">
             <Icon name="stats" />
           </button>
@@ -205,7 +220,25 @@ export default function App() {
           onClose={closeModal}
         />
       )}
-      {modal === 'settings' && <SettingsModal settings={store.settings} onSetting={onSetting} onClose={closeModal} />}
+      {modal === 'settings' && (
+        <SettingsModal
+          settings={store.settings}
+          onSetting={onSetting}
+          onClose={closeModal}
+          account={ACCOUNTS ? {
+            label: profile?.username ? `${profile.username} · ${profile.country ? `${flag(profile.country)} ${countryName(profile.country)}` : 'no country'}` : signedIn() ? 'Choose a username' : 'Sign in',
+            open: () => setModal('account'),
+          } : undefined}
+        />
+      )}
+      {modal === 'board' && <LeaderboardModal today={today} profile={profile} onClose={closeModal} />}
+      {modal === 'account' && (
+        <AccountModal
+          profile={profile}
+          onSaved={(p) => (p ? setProfile(p) : setProfileNonce((n) => n + 1))}
+          onClose={closeModal}
+        />
+      )}
     </div>
   );
 }
