@@ -29,6 +29,8 @@ Design: [docs/superpowers/specs/2026-11-10-accounts-leaderboard-design.md](docs/
 - **Server:** Vercel Functions in `api/` (`day`, `play`, `timer`, `me`, `board`), logic in `server/`. The server checks every move with the same rules as the browser game. Every route returns 404 unless the env var `ACCOUNTS=1` is set.
 - **Database:** Neon Postgres (`chesspage-db`, from the Vercel Marketplace). Tables are in `server/schema.sql`. Create or update them with `npm run db:migrate`.
 - **Client:** the trophy (leaderboard) and the Account row in Settings show only when the build has `VITE_ACCOUNTS=1`. Production doesn't set it.
+- **Signed-in play:** the game still plays locally; `src/lib/ranked.ts` sends each open, move and hint to the server in order. The server judges them with the same rules. If a request fails or the answers differ, that level stops counting until it is opened again. Today's levels finished on another device show up after sign-in. Guests send nothing.
+- **Known limits:** the puzzles and their solutions are still in the browser bundle, so a technical player could read them. The Timer's server time includes network delay.
 - **Sign-in:** Firebase Google sign-in plugs into `auth()` in `src/lib/api.ts` and `identify()` in `server/auth.ts` (env `FIREBASE_PROJECT_ID`). Until then, dev builds have a test sign-in by name.
 
 Run locally with the API:

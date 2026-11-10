@@ -67,6 +67,18 @@ describe('playing a level', () => {
     expect((await me(repo, u)).history).toEqual([{ date: DATE, level: 0, mistakes: 0, hinted: false, failed: false, timeMs: 30_000 }]);
   });
 
+  it('reopening a level restarts it at the setup move but keeps its mistakes, like the game', async () => {
+    const repo = memoryRepo();
+    const u = await player(repo, 'g1', 'alice', 'PK');
+    const p = ladder[0];
+    await open(repo, u, DATE, 0, NOW);
+    await move(repo, u, DATE, 0, ...sq(p.moves[1]), NOW);
+    await repo.saveLevel(u.id, DATE, 0, { ...(await repo.level(u.id, DATE, 0))!, mistakes: 2 });
+    const again = await open(repo, u, DATE, 0, NOW);
+    expect(again).toMatchObject({ moves: [p.moves[0]], mistakes: 2 });
+    expect((await move(repo, u, DATE, 0, ...sq(p.moves[1]), NOW)).result).not.toBe('wrong');
+  });
+
   it('refuses past days and unknown levels', async () => {
     const repo = memoryRepo();
     const u = await player(repo, 'g1', 'alice', 'PK');
@@ -131,6 +143,14 @@ describe('timer', () => {
     for (let i = 1; i < t.moves.length; i += 2) r = await timerMove(repo, u, DATE, ...sq(t.moves[i]), NOW + 20_000);
     expect(r).toMatchObject({ result: 'solved', ms: 20_000 });
     expect(await timerStart(repo, u, DATE, NOW + 90_000)).toMatchObject({ done: true, solved: true, ms: 20_000 });
+  });
+
+  it('resuming restarts at the setup move but keeps the clock', async () => {
+    const repo = memoryRepo();
+    const u = await player(repo, 'g1', 'alice', 'PK');
+    await timerStart(repo, u, DATE, NOW);
+    await timerMove(repo, u, DATE, ...sq(t.moves[1]), NOW + 5_000);
+    expect(await timerStart(repo, u, DATE, NOW + 10_000)).toMatchObject({ moves: [t.moves[0]], elapsed: 10_000 });
   });
 
   it('ends the run after the minute', async () => {

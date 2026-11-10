@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { RankedDay, type LevelView } from '../lib/ranked';
+import { api } from '../lib/api';
 import { SolutionLine, Stage, StatusLine } from './Parts';
 import { usePuzzle } from './usePuzzle';
 import { LADDER_SIZE, LEVELS, type Puzzle } from '../lib/daily';
@@ -18,6 +20,8 @@ type Props = {
   update: (fn: (s: Store) => Store) => void;
   /** The level a shared link opened, if any. */
   start: number | null;
+  /** Signed in with a profile: send play to the server for the leaderboard. */
+  ranked: boolean;
   test: boolean;
   paused: boolean;
   toast: (msg: string, ms?: number) => void;
@@ -38,7 +42,7 @@ function nextOpen(d: DayResult, from = 0): number {
 }
 
 /** The daily ladder: six levels from 1000 to 2000. Play any of them, in any order, with five tries on each. */
-export function Ladder({ set, today, store, update, start, test, paused, toast, onComplete, onShowStats }: Props) {
+export function Ladder({ set, today, store, update, start, ranked, test, paused, toast, onComplete, onShowStats }: Props) {
   const g = usePuzzle(paused);
   const [day, setDay] = useState<DayResult>(() => (!test && store.ladder.history[today]) || emptyDay());
   const [current, setCurrent] = useState<Record<number, Current>>(() => (test ? {} : loadProgress(store, today).current));
@@ -48,12 +52,40 @@ export function Ladder({ set, today, store, update, start, test, paused, toast, 
   const cur = current[sel] ?? FRESH;
   const done = day.levels[sel];
 
+  // Latest values for the server's async answers.
+  const now = useRef({ day, current, sel });
+  now.current = { day, current, sel };
+  const remote = useRef<RankedDay | null>(null);
+  /** The server mirror, made on first use: the profile can arrive after the first level opens. */
+  const server = () => {
+    if (!ranked || test) return null;
+    return (remote.current ??= new RankedDay(today, (l) => toast(`Level ${l + 1} won’t count on the leaderboard. Open it again to retry.`, 3000)));
+  };
+
   function open(i: number) {
     setSel(i);
     // Opened from a level link: keep the address on the level in view.
     if (parseLink(location.pathname)) history.replaceState(null, '', levelPath(today, i));
     if (day.levels[i]) return g.show(set[i], true);
     g.start(set[i], current[i]?.tried ?? []);
+    server()?.open(i).then((v) => v && sync(i, v));
+  }
+
+  /** Picks up what the server already has for a level, such as play on another device. */
+  function sync(i: number, v: Pick<LevelView, 'mistakes' | 'hinted' | 'failed' | 'timeMs' | 'done'>) {
+    const { day: d, current: c, sel: shown } = now.current;
+    if (d.levels[i]) return;
+    if (v.done) {
+      const next = withLevel(d, i, { mistakes: v.mistakes, hinted: v.hinted, failed: v.failed, timeMs: v.timeMs });
+      now.current.day = next;
+      setDay(next);
+      setCurrent(({ [i]: _, ...rest }) => rest);
+      update((s) => recordDay(s, today, next, i));
+      if (shown === i) g.show(set[i], true);
+      return;
+    }
+    const mine = c[i] ?? FRESH;
+    if (v.mistakes > mine.mistakes) saveCurrent(i, { ...mine, mistakes: v.mistakes, hinted: mine.hinted || v.hinted });
   }
 
   useEffect(() => {
@@ -61,6 +93,16 @@ export function Ladder({ set, today, store, update, start, test, paused, toast, 
     open(i < 0 ? LADDER_SIZE - 1 : i);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Once signed in, show today's levels already finished on another device.
+  useEffect(() => {
+    if (!ranked || test) return;
+    type Me = { history: { date: string; level: number; mistakes: number; hinted: boolean; failed: boolean; timeMs: number }[] };
+    api<Me>('/me')
+      .then((m) => m.history.filter((h) => h.date === today).forEach((h) => sync(h.level, { ...h, done: true })))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ranked]);
 
   function saveCurrent(i: number, c: Current) {
     setCurrent((all) => ({ ...all, [i]: c }));
@@ -88,6 +130,7 @@ export function Ladder({ set, today, store, update, start, test, paused, toast, 
   function onMove(from: Sq, to: Sq) {
     const i = sel;
     const res = g.move(from, to);
+    if (res === 'correct' || res === 'wrong' || res === 'solved') server()?.move(i, from, to, res);
     if (res === 'repeat') {
       toast('Already tried that', FAIL_TOAST_MS);
       g.setStatus({ text: 'Already tried that', sub: 'No try used', bad: true });
@@ -115,7 +158,9 @@ export function Ladder({ set, today, store, update, start, test, paused, toast, 
   }
 
   function onHint() {
-    if (g.hint()) saveCurrent(sel, { ...cur, hinted: true, tried: g.run?.tried() ?? [] });
+    if (!g.hint()) return;
+    saveCurrent(sel, { ...cur, hinted: true, tried: g.run?.tried() ?? [] });
+    server()?.hint(sel);
   }
 
   const outcome = (i: number) => {

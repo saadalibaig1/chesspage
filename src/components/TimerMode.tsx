@@ -10,6 +10,7 @@ import type { Store } from '../lib/storage';
 import { themeLabel } from '../lib/themes';
 import { PuzzleTimer } from '../lib/timer';
 import { play } from '../lib/sound';
+import { RankedTimer } from '../lib/ranked';
 
 type Props = {
   puzzle: Puzzle;
@@ -18,6 +19,8 @@ type Props = {
   store: Store;
   update: (fn: (s: Store) => Store) => void;
   test: boolean;
+  /** Signed in with a profile: send the run to the server. */
+  ranked: boolean;
   paused: boolean;
   toast: (msg: string, ms?: number) => void;
 };
@@ -25,7 +28,7 @@ type Props = {
 type State = 'ready' | 'running' | 'over';
 
 /** One puzzle a day, the same for everyone, against a one-minute clock. The board stays hidden until Start. */
-export function TimerMode({ puzzle, today, day, store, update, test, paused, toast }: Props) {
+export function TimerMode({ puzzle, today, day, store, update, test, ranked, paused, toast }: Props) {
   const g = usePuzzle(paused);
   const done = test ? undefined : store.timer.history[today];
   const saved = !test && store.timer.progress?.date === today ? store.timer.progress : undefined;
@@ -38,6 +41,7 @@ export function TimerMode({ puzzle, today, day, store, update, test, paused, toa
   const live = useRef(false);
 
   const used = () => offset.current + clock.current.elapsed();
+  const remote = useRef<RankedTimer | null>(null);
 
   useEffect(() => g.show(puzzle, !!done), []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -69,6 +73,10 @@ export function TimerMode({ puzzle, today, day, store, update, test, paused, toa
   }, [state]);
 
   function begin() {
+    if (ranked && !test) {
+      remote.current = new RankedTimer(today, () => toast('Today’s Timer won’t count on the leaderboard.', 3000));
+      remote.current.start();
+    }
     live.current = true;
     clock.current.reset();
     clock.current.start();
@@ -97,6 +105,7 @@ export function TimerMode({ puzzle, today, day, store, update, test, paused, toa
 
   function onMove(from: Sq, to: Sq) {
     const res = g.move(from, to);
+    if (res === 'correct' || res === 'wrong' || res === 'solved') remote.current?.move(from, to, res);
     if (res === 'repeat') {
       toast('Already tried that', 2500);
       g.setStatus({ text: 'Already tried that', sub: 'Try another move', bad: true });

@@ -88,10 +88,13 @@ async function levelRow(repo: Repo, u: User, date: string, level: number, now: n
   return { me, p, row };
 }
 
-/** Starts (or resumes) a level and starts its time. */
+/** Starts a level, or restarts it at the setup move as the game does (mistakes and time carry on). */
 export async function open(repo: Repo, u: User, date: string, level: number, now = Date.now()) {
-  const { p, row } = await levelRow(repo, u, date, level, now);
-  return levelView(p, row);
+  const { me, p, row } = await levelRow(repo, u, date, level, now);
+  if (row.done || row.ply === 0) return levelView(p, row);
+  const restarted = { ...row, ply: 0 };
+  await repo.saveLevel(me.id, date, level, restarted);
+  return levelView(p, restarted);
 }
 
 export async function move(repo: Repo, u: User, date: string, level: number, from: string, to: string, now = Date.now()) {
@@ -123,7 +126,7 @@ function timerView(p: Puzzle, row: TimerRow, now: number) {
   };
 }
 
-/** Starts the Timer clock on the server, or resumes it. */
+/** Starts the Timer clock on the server, or resumes the run. */
 export async function timerStart(repo: Repo, u: User, date: string, now = Date.now()) {
   const me = player(u);
   checkDate(date, now);
@@ -131,6 +134,10 @@ export async function timerStart(repo: Repo, u: User, date: string, now = Date.n
   let row = await repo.timer(me.id, date);
   if (!row) {
     row = { ...fresh(), startedAt: now, ms: 0 };
+    await repo.saveTimer(me.id, date, row);
+  } else if (!row.done && row.ply > 0) {
+    // A resume restarts at the setup move, as the game does; the clock keeps running.
+    row = { ...row, ply: 0 };
     await repo.saveTimer(me.id, date, row);
   }
   return timerView(p, row, now);

@@ -36,6 +36,7 @@ export default function App() {
 
   const mode = store.mode;
   const test = store.settings.testMode;
+  const ranked = ACCOUNTS && !test && !!profile?.username && !!profile.country;
 
   const update = useCallback((fn: (s: Store) => Store) => {
     setStore((prev) => {
@@ -192,7 +193,7 @@ export default function App() {
         </div>
       ) : mode === 'timer' ? (
         <TimerMode key={`timer-${today}-${test}-${testNonce}`} puzzle={timerPuzzle!} today={today} day={dayNumber(today)}
-          store={store} update={update} test={test} paused={modal !== null} toast={toast} />
+          store={store} update={update} test={test} ranked={ranked} paused={modal !== null} toast={toast} />
       ) : (
         <Ladder
           key={`${today}-${test}-${testNonce}`}
@@ -201,6 +202,7 @@ export default function App() {
           store={store}
           update={update}
           start={linkLevel}
+          ranked={ranked}
           test={test}
           paused={modal !== null}
           toast={toast}
