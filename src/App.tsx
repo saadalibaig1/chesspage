@@ -8,7 +8,7 @@ import { dailyLadder, dailyTimer, dayNumber, localDateKey, msUntilMidnight, rand
 import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
-import { levelFromPath } from './lib/links';
+import { parseLink } from './lib/links';
 
 type Modal = null | 'help' | 'stats' | 'settings';
 type Toast = { id: number; text: string };
@@ -16,8 +16,9 @@ type Toast = { id: number; text: string };
 const MODES: [Mode, string][] = [['ladder', 'Daily'], ['timer', 'Timer']];
 
 export default function App() {
-  // A level link (/1 to /6) opens that level of today's Daily.
-  const [linkLevel, setLinkLevel] = useState(() => levelFromPath(location.pathname));
+  // A level link (/YYYY/MM/DD/N or /N) opens that level of today's Daily; never a past day.
+  const [link] = useState(() => parseLink(location.pathname));
+  const [linkLevel, setLinkLevel] = useState(() => link?.level ?? null);
   const [store, setStore] = useState<Store>(() => (linkLevel === null ? load() : { ...load(), mode: 'ladder' }));
   const [today, setToday] = useState(localDateKey);
   const [pool, setPool] = useState<Pool | null>(null);
@@ -51,6 +52,12 @@ export default function App() {
       .then((m) => setPool(m.default as unknown as Pool))
       .catch(() => setLoadFailed(true));
   }, [loadTry]);
+
+  useEffect(() => {
+    if (!link?.date || link.date === today) return;
+    toast(link.date < today ? 'That puzzle has ended. Here’s today’s.' : 'That puzzle isn’t out here yet. Here’s today’s.', 3000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => setSoundEnabled(store.settings.sound), [store.settings.sound]);
   useEffect(() => {

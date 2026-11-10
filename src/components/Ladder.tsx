@@ -6,7 +6,7 @@ import type { Sq } from '../lib/puzzle';
 import { emptyDay, levelWord, TRIES, triesLeft, withLevel, type DayResult, type LevelResult } from '../lib/results';
 import { loadProgress, recordDay, type Current, type Store } from '../lib/storage';
 import { themeLabel } from '../lib/themes';
-import { levelFromPath, levelShareText } from '../lib/links';
+import { levelPath, levelShareText, parseLink } from '../lib/links';
 import { shareOrCopy } from '../lib/share';
 import { Icon } from './Icon';
 import { buzz, play } from '../lib/sound';
@@ -51,7 +51,7 @@ export function Ladder({ set, today, store, update, start, test, paused, toast, 
   function open(i: number) {
     setSel(i);
     // Opened from a level link: keep the address on the level in view.
-    if (levelFromPath(location.pathname) !== null) history.replaceState(null, '', `/${i + 1}`);
+    if (parseLink(location.pathname)) history.replaceState(null, '', levelPath(today, i));
     if (day.levels[i]) return g.show(set[i], true);
     g.start(set[i], current[i]?.tried ?? []);
   }
@@ -111,7 +111,7 @@ export function Ladder({ set, today, store, update, start, test, paused, toast, 
   }
 
   async function onShare() {
-    if ((await shareOrCopy(levelShareText(location.origin, sel))) === 'copied') toast('Link copied');
+    if ((await shareOrCopy(levelShareText(location.origin, today, sel))) === 'copied') toast('Link copied');
   }
 
   function onHint() {
