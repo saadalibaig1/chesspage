@@ -69,8 +69,9 @@ describe('tryMarks', () => {
     expect(tryMarks(2, 'play')).toEqual(['miss', 'miss', 'open', 'open', 'open']);
   });
 
-  it('ends a solved level with a crown, like the share row', () => {
-    expect(tryMarks(0, 'solved')).toEqual(['crown']);
+  it('puts a crown on the solving try and keeps a dot for each try not needed', () => {
+    expect(tryMarks(0, 'solved')).toEqual(['crown', 'open', 'open', 'open', 'open']);
+    expect(tryMarks(1, 'solved')).toEqual(['miss', 'crown', 'open', 'open', 'open']);
     expect(tryMarks(4, 'solved')).toEqual(['miss', 'miss', 'miss', 'miss', 'crown']);
   });
 

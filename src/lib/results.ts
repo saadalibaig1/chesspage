@@ -27,12 +27,10 @@ export const CROWN = '👑';
 
 export type Mark = 'miss' | 'crown' | 'open';
 
-/** The marks above the board: a pawn per wrong try, then a dot per try left while playing, or a crown once solved. */
+/** The marks above the board, one per try: a pawn per wrong try, a crown on the solving try, a dot for each try left. */
 export function tryMarks(mistakes: number, state: 'play' | 'solved' | 'failed'): Mark[] {
-  const misses: Mark[] = Array(Math.min(mistakes, TRIES)).fill('miss');
-  if (state === 'solved') return [...misses, 'crown'];
-  if (state === 'failed') return misses;
-  return [...misses, ...Array(triesLeft(mistakes)).fill('open')];
+  const marks: Mark[] = [...Array(Math.min(mistakes, TRIES)).fill('miss'), ...(state === 'solved' ? ['crown' as const] : [])];
+  return [...marks, ...Array(TRIES - marks.length).fill('open')];
 }
 
 /** One row per played level: a pawn per wrong move, then a crown if solved. */
