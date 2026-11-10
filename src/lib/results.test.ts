@@ -1,5 +1,5 @@
 import {
-  emptyDay, formatTime, ladderStats, levelWord, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, withLevel,
+  emptyDay, formatTime, ladderStats, levelWord, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, tryMarks, withLevel,
   type DayResult, type LevelResult,
 } from './results';
 
@@ -61,4 +61,20 @@ test('Timer: one minute, share shows the solve time or X', () => {
 
 test('formatTime', () => {
   expect(formatTime(167000)).toBe('2:47');
+});
+
+describe('tryMarks', () => {
+  it('shows a pawn per wrong try, then a dot per try left, while playing', () => {
+    expect(tryMarks(0, 'play')).toEqual(['open', 'open', 'open', 'open', 'open']);
+    expect(tryMarks(2, 'play')).toEqual(['miss', 'miss', 'open', 'open', 'open']);
+  });
+
+  it('ends a solved level with a crown, like the share row', () => {
+    expect(tryMarks(0, 'solved')).toEqual(['crown']);
+    expect(tryMarks(4, 'solved')).toEqual(['miss', 'miss', 'miss', 'miss', 'crown']);
+  });
+
+  it('shows only pawns for a failed level', () => {
+    expect(tryMarks(5, 'failed')).toEqual(['miss', 'miss', 'miss', 'miss', 'miss']);
+  });
 });

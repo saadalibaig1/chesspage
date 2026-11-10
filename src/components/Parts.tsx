@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Board } from './Board';
 import type { Sq } from '../lib/puzzle';
+import { CROWN, PAWN, type Mark } from '../lib/results';
 import type { usePuzzle } from './usePuzzle';
 
 type G = ReturnType<typeof usePuzzle>;
@@ -54,5 +55,26 @@ export function SolutionLine({ g, title }: { g: G; title: string }) {
         <small className="solution">{watching ? 'Watch the solution…' : `Solution: ${g.run?.solution().join(' ')}`}</small>
       </span>
     </p>
+  );
+}
+
+type InfoProps = { idea: string; elo: number; marks?: Mark[]; label?: string };
+
+/** The row above the board: the puzzle's idea and rating on the left, the try marks on the right. */
+export function InfoRow({ idea, elo, marks, label }: InfoProps) {
+  return (
+    <div className="info">
+      <p className="idea">
+        <b>{idea}</b>
+        <span>{elo} Elo</span>
+      </p>
+      {marks && (
+        <span className="marks" role="img" aria-label={label}>
+          {marks.map((m, i) => (
+            <span key={i} className={m}>{m === 'miss' ? PAWN : m === 'crown' ? CROWN : null}</span>
+          ))}
+        </span>
+      )}
+    </div>
   );
 }

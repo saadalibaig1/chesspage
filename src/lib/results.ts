@@ -22,13 +22,24 @@ export function withLevel(day: DayResult, i: number, r: LevelResult): DayResult 
 export const triesLeft = (mistakes: number) => Math.max(0, TRIES - mistakes);
 
 // The pawn carries U+FE0F so it renders as an emoji, not a text glyph.
-const PAWN = '\u265F\uFE0F';
+export const PAWN = '\u265F\uFE0F';
+export const CROWN = '👑';
+
+export type Mark = 'miss' | 'crown' | 'open';
+
+/** The marks above the board: a pawn per wrong try, then a dot per try left while playing, or a crown once solved. */
+export function tryMarks(mistakes: number, state: 'play' | 'solved' | 'failed'): Mark[] {
+  const misses: Mark[] = Array(Math.min(mistakes, TRIES)).fill('miss');
+  if (state === 'solved') return [...misses, 'crown'];
+  if (state === 'failed') return misses;
+  return [...misses, ...Array(triesLeft(mistakes)).fill('open')];
+}
 
 /** One row per played level: a pawn per wrong move, then a crown if solved. */
 export function shareText(day: number, r: DayResult, test = false): string {
   const played = r.levels.flatMap((l, i) => (l ? [{ l, i }] : []));
   const hinted = played.some(({ l }) => l.hinted) ? ' 💡' : '';
-  const rows = played.map(({ l, i }) => `${LEVELS[i]} ${PAWN.repeat(l.mistakes)}${l.failed ? '' : '👑'}`);
+  const rows = played.map(({ l, i }) => `${LEVELS[i]} ${PAWN.repeat(l.mistakes)}${l.failed ? '' : CROWN}`);
   return [`ChessPage ${test ? 'test' : day} · ${r.n}/${played.length}${hinted}`, ...rows].join('\n');
 }
 

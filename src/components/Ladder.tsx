@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { RankedDay, type LevelView } from '../lib/ranked';
 import { api } from '../lib/api';
-import { SolutionLine, Stage, StatusLine } from './Parts';
+import { InfoRow, SolutionLine, Stage, StatusLine } from './Parts';
 import { usePuzzle } from './usePuzzle';
 import { LADDER_SIZE, LEVELS, type Puzzle } from '../lib/daily';
 import type { Sq } from '../lib/puzzle';
-import { emptyDay, levelWord, TRIES, triesLeft, withLevel, type DayResult, type LevelResult } from '../lib/results';
+import { emptyDay, levelWord, TRIES, triesLeft, tryMarks, withLevel, type DayResult, type LevelResult } from '../lib/results';
 import { loadProgress, recordDay, type Current, type Store } from '../lib/storage';
 import { themeLabel } from '../lib/themes';
 import { levelPath, levelShareText, parseLink } from '../lib/links';
@@ -197,18 +197,12 @@ export function Ladder({ set, today, store, update, start, ranked, test, paused,
           );
         })}
       </div>
-      <p className={`subtitle${done ? '' : ' level'}`}>
-        {done ? (
-          `The idea: ${themeLabel(set[sel].themes)}`
-        ) : (
-          <>
-            Level {sel + 1} · <b>{LEVELS[sel]}</b> Elo
-            <span className="tries" aria-label={`${left} of ${TRIES} tries left`}>
-              {Array.from({ length: TRIES }, (_, i) => <span key={i} className={i < left ? 'on' : ''} />)}
-            </span>
-          </>
-        )}
-      </p>
+      <InfoRow
+        idea={done || !store.settings.hard ? themeLabel(set[sel].themes) : `Level ${sel + 1}`}
+        elo={LEVELS[sel]}
+        marks={tryMarks(done ? done.mistakes : cur.mistakes, done ? (done.failed ? 'failed' : 'solved') : 'play')}
+        label={done ? title : `${left} of ${TRIES} tries left`}
+      />
 
       <Stage g={g} coords={store.settings.coords} onMove={onMove} />
 

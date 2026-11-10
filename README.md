@@ -2,9 +2,9 @@
 
 A daily chess puzzle game in the style of Wordle. Two modes:
 
-- **Daily (default):** 6 levels, 1000 → 2000 rating, the same for everyone. Tap any level to play it, in any order; do one, a few or all six. You get 5 tries on each level. A wrong move uses a try; the same wrong move again is free. Out of tries ends that level only and plays its solution (the idea, the full solution, Replay). Share: one row per played level, e.g. `ChessPage 12 · 3/4` then `1200 ♟️👑` (a pawn per wrong move, a crown for the solve). Each level has its own link with the date, e.g. `chesspage.com/2026/11/10/2`; the share-icon key copies it. A link always opens that level of today's Daily: an older date shows a short message and today's puzzle. The short form `/1` to `/6` also works.
+- **Daily (default):** 6 levels, 1000 → 2000 rating, the same for everyone. Tap any level to play it, in any order; do one, a few or all six. The row above the board shows the puzzle's idea (e.g. Fork) and rating, and the tries: a ♟️ for each wrong move, a dot for each try left, a 👑 once solved. You get 5 tries on each level. A wrong move uses a try; the same wrong move again is free. Out of tries ends that level only and plays its solution (the full solution, Replay). Share: one row per played level, e.g. `ChessPage 12 · 3/4` then `1200 ♟️👑` (a pawn per wrong move, a crown for the solve). Each level has its own link with the date, e.g. `chesspage.com/2026/11/10/2`; the share-icon key copies it. A link always opens that level of today's Daily: an older date shows a short message and today's puzzle. The short form `/1` to `/6` also works.
 - **Timer:** one 1600 puzzle a day, the same for everyone, against a 1-minute clock. The board stays blurred under a Start key until the clock starts; a reload resumes the clock. Share: `ChessPage Timer 12` / `⏱️ 0:38` (or `⏱️ X`).
-- **Hint:** tap once to see which piece moves. Tap again to see where it goes. Hard Mode turns hints off.
+- **Hint:** tap once to see which piece moves. Tap again to see where it goes. Hard Mode turns hints off and hides the idea until the level ends.
 - Stats count the Daily levels: days played, average solved, streak of days with at least one level played. Progress is saved per browser, so chesspage.com is the one address: www and chesspage-theta.vercel.app redirect to it (`vercel.json`).
 
 ```bash

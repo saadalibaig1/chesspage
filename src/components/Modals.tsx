@@ -29,8 +29,8 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         <p className="lead">Today’s ladder: {LADDER_SIZE} levels, {LEVELS[0]} to {LEVELS[LADDER_SIZE - 1]}.</p>
         <ul>
           <li>Tap any level to play it. Do one, a few, or all six, in any order.</li>
-          <li>Find the best move. Drag or tap a piece to play it.</li>
-          <li>You get {TRIES} tries on each level. A wrong move uses a try. The same wrong move again is free.</li>
+          <li>Find the best move. The idea above the board, such as <b>Fork</b>, tells you what to look for. Drag or tap a piece to play it.</li>
+          <li>You get {TRIES} tries on each level. A wrong move uses a try and shows a ♟️. The same wrong move again is free.</li>
           <li>Out of tries? That level ends and its solution plays. The other levels stay open.</li>
         </ul>
         <h4>Example</h4>
@@ -38,7 +38,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           {['solved', 'solved', 'failed', '', 'solved', ''].map((c, i) => <Tile key={i} c={c || undefined}>{String(i + 1)}</Tile>)}
         </div>
         <p className="small">Played four levels and solved three: <b>3/4</b>.</p>
-        <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Turn hints off with Hard Mode.</p>
+        <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Hard Mode turns hints off and keeps the idea hidden until the end.</p>
         <hr />
         <p className="small"><b>Timer:</b> one {LEVELS[TIMER_LEVEL]} puzzle a day, the same for everyone. Solve it in under a minute.</p>
         <hr />
@@ -122,7 +122,7 @@ type SettingsProps = {
 
 export function SettingsModal({ settings, onSetting, onClose, account }: SettingsProps) {
   const rows: [keyof Settings, string, string][] = [
-    ['hard', 'Hard Mode', 'No hints'],
+    ['hard', 'Hard Mode', 'No hints. The idea shows at the end'],
     ['contrast', 'High Contrast Mode', 'For improved color vision'],
     ['sound', 'Sound', 'Move and result sounds'],
     ['coords', 'Coordinates', 'Files and ranks on the board'],

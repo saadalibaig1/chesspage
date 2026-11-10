@@ -22,12 +22,14 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
-  --chrome: 300px; /* header 56 + modes 44 + tiles 40 + subtitle 26 + gaps 20/18 + strip 52 + breathing room 44 */
+  --chrome: 300px; /* header 56 + modes 44 + tiles 46 + info 40 + stage 12 + strip 64 + breathing room 38 */
+  --slack: calc(100dvh - var(--chrome) - var(--board) - var(--safe-t) - var(--safe-b)); /* height left over on tall phones */
   --board: min(
-    calc(100vw - 40px - var(--safe-l) - var(--safe-r)),
+    calc(100vw - 32px - var(--safe-l) - var(--safe-r)),
     calc(100dvh - var(--chrome) - var(--safe-t) - var(--safe-b)),
     520px
   );
+  --tile: clamp(38px, calc(var(--board) / 7.4), 46px);
 }
 
 :root.contrast {
@@ -211,19 +213,19 @@ button {
   flex: none;
   display: flex;
   gap: 6px;
-  margin-top: auto; /* with the strip's margin-bottom: auto, centers tiles + board + strip as one group */
-  height: 40px;
+  margin-top: calc(20px + var(--slack) * 0.3); /* sits a little above center on tall phones; the strip's margin-bottom: auto takes the rest */
+  height: var(--tile);
   perspective: 400px;
 }
 
 .tile {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: var(--tile);
+  height: var(--tile);
   border: 2px solid var(--line);
   background: var(--bg);
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
   color: var(--text);
   user-select: none;
@@ -290,52 +292,69 @@ button {
   100% { transform: translateY(0); }
 }
 
-.subtitle {
+/* The row above the board, as wide as the board: idea and rating left, try marks right. */
+.info {
+  width: var(--board);
+  height: 24px;
   flex: none;
-  margin: 10px 0 0;
-  height: 16px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-/* Daily: the selected level and its rating, larger and dark so it reads at a glance. */
-.subtitle.level {
   display: flex;
   align-items: center;
-  height: 22px;
-  font-size: 16px;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--text);
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
 }
 
-.subtitle.level b {
-  margin-left: 0.25em;
-  margin-right: 0.2em;
+.idea {
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.idea b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.idea span {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 
-/* Ladder tries: filled dots left, hollow dots used. */
-.tries {
-  display: inline-flex;
-  gap: 4px;
-  margin-left: 10px;
-  vertical-align: -1px;
+/* A pawn per wrong try, a dot per try left, a crown once solved: the share row, live. */
+.marks {
+  flex: none;
+  display: flex;
+  align-items: center;
 }
 
-.tries span {
-  width: 11px;
-  height: 11px;
+.marks span {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  height: 24px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.marks .open::before {
+  content: '';
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  border: 2px solid var(--line-strong);
+  background: var(--line-strong);
+  opacity: 0.45;
 }
 
-.tries .on {
-  border-color: var(--text);
-  background: var(--text);
+.marks .miss {
+  animation: pop 160ms ease-out;
 }
 
 /* Timer's clock shares the tiles' row. */
@@ -345,8 +364,8 @@ button {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin-top: auto;
-  height: 40px;
+  margin-top: calc(20px + var(--slack) * 0.3);
+  height: var(--tile);
 }
 
 .clock {
@@ -370,7 +389,7 @@ button {
 
 .veil {
   position: absolute;
-  inset: 20px 0 0; /* the stage's top padding */
+  inset: 12px 0 0; /* the stage's top padding */
   z-index: 2;
   display: grid;
   place-items: center;
@@ -419,7 +438,7 @@ button {
 
 .stage {
   flex: none;
-  padding-top: 20px;
+  padding-top: 12px;
 }
 
 .strip {
@@ -429,7 +448,7 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 18px;
+  margin-top: 12px;
   margin-bottom: auto;
 }
 
@@ -1321,7 +1340,7 @@ input[role='switch']:checked::after {
   .modes { grid-column: 2; grid-row: 2; }
   .tiles,
   .topline { grid-column: 2; grid-row: 3; margin-top: 16px; }
-  .subtitle { grid-column: 2; grid-row: 4; }
+  .info { grid-column: 2; grid-row: 4; width: 100%; max-width: 360px; }
   .strip { grid-column: 2; grid-row: 5; width: auto; min-width: 300px; align-self: end; margin: 0 0 16px; }
   .chip { left: auto; right: calc(var(--safe-r) + 12px); }
 }

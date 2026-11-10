@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
-import { SolutionLine, Stage, StatusLine } from './Parts';
+import { InfoRow, SolutionLine, Stage, StatusLine } from './Parts';
 import { usePuzzle } from './usePuzzle';
 import { LEVELS, type Puzzle } from '../lib/daily';
 import type { Sq } from '../lib/puzzle';
@@ -134,9 +134,10 @@ export function TimerMode({ puzzle, today, day, store, update, test, ranked, pau
           {formatTime(state === 'over' && result?.solved ? shown : shown + 999)}
         </span>
       </div>
-      <p className="subtitle">
-        {state === 'over' ? `The idea: ${themeLabel(puzzle.themes)}` : `One puzzle · one minute · ${LEVELS[puzzle.level]}`}
-      </p>
+      <InfoRow
+        idea={state === 'over' || !store.settings.hard ? themeLabel(puzzle.themes) : 'Find the best move'}
+        elo={LEVELS[puzzle.level]}
+      />
 
       <Stage
         g={g}
