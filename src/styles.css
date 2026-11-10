@@ -1008,7 +1008,7 @@ input[role='switch']:checked::after {
   translate: 12px 0;
 }
 
-/* ---------- Accounts and leaderboard (behind VITE_ACCOUNTS) ---------- */
+/* ---------- Leaderboard and accounts (sign-in behind VITE_SIGNIN) ---------- */
 .row-button {
   display: flex;
   align-items: center;

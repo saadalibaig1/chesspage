@@ -41,9 +41,9 @@ function Row({ r, you }: { r: BoardRow; you: boolean }) {
   );
 }
 
-type Props = { today: string; profile: Profile | null; onSignIn: () => void; onClose: () => void };
+type Props = { today: string; profile: Profile | null; onSignIn?: () => void; onClose: () => void };
 
-/** Today's board for a country, or the world. Guests can look; signed-in players appear on it. */
+/** Today's board for a country, or the world. Guests can look; signed-in players appear on it. onSignIn is unset while sign-in is hidden. */
 export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
   const [tab, setTab] = useState<'country' | 'world'>('country');
   const [country, setCountry] = useState(() => startCountry(profile));
@@ -91,7 +91,7 @@ export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
       ) : !board ? (
         <p className="center muted small">Loading…</p>
       ) : board.rows.length === 0 ? (
-        <p className="center muted small">No one has played yet today. Be the first.</p>
+        <p className="center muted small">{onSignIn ? 'No one has played yet today. Be the first.' : 'No one on the board yet today.'}</p>
       ) : (
         <>
           <p className="center muted small">{board.players} {board.players === 1 ? 'player' : 'players'} · levels solved</p>
@@ -102,7 +102,7 @@ export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
           </ol>
         </>
       )}
-      {!profile?.username && (
+      {onSignIn && !profile?.username && (
         <button type="button" className="link-button" onClick={onSignIn}>Sign in to appear on the leaderboard</button>
       )}
     </Sheet>

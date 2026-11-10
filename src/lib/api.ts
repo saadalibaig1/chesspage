@@ -1,5 +1,5 @@
-/** Accounts and leaderboards stay hidden unless the build sets VITE_ACCOUNTS=1. */
-export const ACCOUNTS = import.meta.env.VITE_ACCOUNTS === '1';
+/** Sign-in (and everything that needs it) stays hidden unless the build sets VITE_SIGNIN=1. The leaderboard is always on. */
+export const SIGNIN = import.meta.env.VITE_SIGNIN === '1';
 
 const DEV_KEY = 'chesspage:dev-user';
 

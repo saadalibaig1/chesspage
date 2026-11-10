@@ -9,7 +9,7 @@ import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
-import { ACCOUNTS, api, loginAsked, setLoginAsked, signedIn, type Profile } from './lib/api';
+import { SIGNIN, api, loginAsked, setLoginAsked, signedIn, type Profile } from './lib/api';
 import { countryName, flag } from './lib/countries';
 import { AccountModal, LeaderboardModal, SignInModal } from './components/Leaderboard';
 
@@ -36,7 +36,7 @@ export default function App() {
 
   const mode = store.mode;
   const test = store.settings.testMode;
-  const ranked = ACCOUNTS && !test && !!profile?.username && !!profile.country;
+  const ranked = SIGNIN && !test && !!profile?.username && !!profile.country;
 
   const update = useCallback((fn: (s: Store) => Store) => {
     setStore((prev) => {
@@ -65,9 +65,9 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Accounts (behind the VITE_ACCOUNTS flag): load the signed-in player's profile.
+  // Sign-in (behind the VITE_SIGNIN flag): load the signed-in player's profile.
   useEffect(() => {
-    if (!ACCOUNTS || !signedIn()) return setProfile(null);
+    if (!SIGNIN || !signedIn()) return setProfile(null);
     api<Profile>('/me').then(setProfile).catch(() => setProfile(null));
   }, [profileNonce]);
 
@@ -130,7 +130,7 @@ export default function App() {
   }, []);
   // After the first finished level, offer sign-in once. Skipped if another sheet is open by then.
   const onLevelDone = useCallback(() => {
-    if (!ACCOUNTS || signedIn() || loginAsked()) return;
+    if (!SIGNIN || signedIn() || loginAsked()) return;
     setLoginAsked();
     setTimeout(() => setModal((m) => m ?? 'signin'), 2200);
   }, []);
@@ -144,11 +144,9 @@ export default function App() {
           <button type="button" className="icon" onClick={() => setModal('help')} aria-label="How to play">
             <Icon name="help" />
           </button>
-          {ACCOUNTS && (
-            <button type="button" className="icon" onClick={() => setModal('board')} aria-label="Leaderboard">
-              <Icon name="trophy" />
-            </button>
-          )}
+          <button type="button" className="icon" onClick={() => setModal('board')} aria-label="Leaderboard">
+            <Icon name="trophy" />
+          </button>
         </div>
         <h1 className="brand">ChessPage</h1>
         <div className="side right">
@@ -234,14 +232,14 @@ export default function App() {
           settings={store.settings}
           onSetting={onSetting}
           onClose={closeModal}
-          account={ACCOUNTS ? {
+          account={SIGNIN ? {
             label: profile?.username ? `${profile.username} · ${profile.country ? `${flag(profile.country)} ${countryName(profile.country)}` : 'no country'}` : signedIn() ? 'Choose a username' : 'Sign in',
             open: () => setModal('account'),
           } : undefined}
         />
       )}
       {modal === 'signin' && <SignInModal onClose={closeModal} />}
-      {modal === 'board' && <LeaderboardModal today={today} profile={profile} onSignIn={() => setModal('account')} onClose={closeModal} />}
+      {modal === 'board' && <LeaderboardModal today={today} profile={profile} onSignIn={SIGNIN ? () => setModal('account') : undefined} onClose={closeModal} />}
       {modal === 'account' && (
         <AccountModal
           profile={profile}

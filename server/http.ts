@@ -4,10 +4,9 @@ import { HttpError, type Repo, type User } from './service.js';
 
 type Ctx = { req: Request; url: URL; repo: Repo; user: User | null; body: Record<string, unknown> };
 
-/** Wraps an API route: JSON in and out, the user if signed in, and errors as { error }. Off unless ACCOUNTS=1. */
+/** Wraps an API route: JSON in and out, the user if signed in, and errors as { error }. */
 export function route(fn: (c: Ctx) => Promise<unknown> | unknown) {
   return async (req: Request): Promise<Response> => {
-    if (process.env.ACCOUNTS !== '1') return Response.json({ error: 'Not found.' }, { status: 404 });
     try {
       const repo = pgRepo();
       const body = req.method === 'POST' ? ((await req.json().catch(() => ({}))) as Record<string, unknown>) : {};

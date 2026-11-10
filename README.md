@@ -22,13 +22,13 @@ npm run puzzles    # regenerate src/data/puzzles.json from the Lichess puzzle DB
 - **Docs:** see `docs/superpowers/specs/` for the spec and `DESIGN.md` for the design system.
 - **Credits:** puzzles from the [Lichess puzzle database](https://database.lichess.org/#puzzles) (CC0). Pieces are cburnett (CC BY-SA 3.0).
 
-## Accounts and leaderboards (in progress, off in production)
+## Leaderboards and accounts (sign-in hidden in production)
 
 Design: [docs/superpowers/specs/2026-11-10-accounts-leaderboard-design.md](docs/superpowers/specs/2026-11-10-accounts-leaderboard-design.md).
 
-- **Server:** Vercel Functions in `api/` (`day`, `play`, `timer`, `me`, `board`), logic in `server/`. The server checks every move with the same rules as the browser game. Every route returns 404 unless the env var `ACCOUNTS=1` is set.
+- **Server:** Vercel Functions in `api/` (`day`, `play`, `timer`, `me`, `board`), logic in `server/`. The server checks every move with the same rules as the browser game. Signed-in routes need a Firebase token, so they do nothing until sign-in is set up.
 - **Database:** Neon Postgres (`chesspage-db`, from the Vercel Marketplace). Tables are in `server/schema.sql`. Create or update them with `npm run db:migrate`.
-- **Client:** the trophy (leaderboard) and the Account row in Settings show only when the build has `VITE_ACCOUNTS=1`. Production doesn't set it.
+- **Client:** the trophy (leaderboard) is always on. Everything that needs sign-in (the Account row in Settings, the sign-in prompt, signed-in play) shows only when the build has `VITE_SIGNIN=1`. Preview deployments set it; production doesn't, until the client says so.
 - **Signed-in play:** the game still plays locally; `src/lib/ranked.ts` sends each open, move and hint to the server in order. The server judges them with the same rules. If a request fails or the answers differ, that level stops counting until it is opened again. Today's levels finished on another device show up after sign-in. Guests send nothing.
 - **Known limits:** the puzzles and their solutions are still in the browser bundle, so a technical player could read them. The Timer's server time includes network delay.
 - **Sign-in:** Firebase Google sign-in plugs into `auth()` in `src/lib/api.ts` and `identify()` in `server/auth.ts` (env `FIREBASE_PROJECT_ID`). Until then, dev builds have a test sign-in by name.
@@ -36,7 +36,7 @@ Design: [docs/superpowers/specs/2026-11-10-accounts-leaderboard-design.md](docs/
 Run locally with the API:
 
 ```bash
-ACCOUNTS=1 ACCOUNTS_DEV_AUTH=1 vercel dev --listen 3000
+ACCOUNTS_DEV_AUTH=1 vercel dev --listen 3000
 ```
 
-Put `VITE_ACCOUNTS=1` in `.env.development.local`. Remove test users with `npm run db:clear-dev`.
+Put `VITE_SIGNIN=1` in `.env.development.local`. Remove test users with `npm run db:clear-dev`.
