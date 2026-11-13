@@ -1,5 +1,5 @@
 import {
-  emptyDay, formatTime, ladderStats, levelWord, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, tryMarks, withLevel,
+  emptyDay, formatTime, ladderStats, levelWord, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, tryMarks, withLevel, levelScore,
   type DayResult, type LevelResult,
 } from './results';
 
@@ -77,5 +77,22 @@ describe('tryMarks', () => {
 
   it('shows only pawns for a failed level', () => {
     expect(tryMarks(5, 'failed')).toEqual(['miss', 'miss', 'miss', 'miss', 'miss']);
+  });
+});
+
+describe('levelScore', () => {
+  it('is worth 100 to 600 by level, for a clean solve', () => {
+    expect(levelScore(0, { mistakes: 0, hinted: false, failed: false })).toBe(100);
+    expect(levelScore(5, { mistakes: 0, hinted: false, failed: false })).toBe(600);
+  });
+
+  it('takes 20% off per wrong move and 30% off for a hint', () => {
+    expect(levelScore(5, { mistakes: 1, hinted: false, failed: false })).toBe(480);
+    expect(levelScore(5, { mistakes: 0, hinted: true, failed: false })).toBe(420);
+    expect(levelScore(5, { mistakes: 2, hinted: true, failed: false })).toBe(269);
+  });
+
+  it('gives nothing for a level out of tries', () => {
+    expect(levelScore(5, { mistakes: 5, hinted: false, failed: true })).toBe(0);
   });
 });

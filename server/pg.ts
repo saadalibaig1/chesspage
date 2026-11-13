@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { levelMarks, type BoardRow } from './rules.js';
+import { dayScore, type BoardRow } from './rules.js';
 import type { LevelRow, Repo, TimerRow, User } from './service.js';
 
 type Row = Record<string, unknown>;
@@ -64,10 +64,8 @@ export function pgRepo(url = process.env.DATABASE_URL!): Repo {
         select u.username, d.country,
           count(*) filter (where p.done)::int as played,
           count(*) filter (where p.done and not p.failed)::int as solved,
-          count(*) filter (where p.done and not p.failed and p.hinted)::int as hinted,
-          coalesce(sum(p.mistakes) filter (where p.done), 0)::int as mistakes,
           coalesce(sum(p.time_ms) filter (where p.done and not p.failed), 0)::int as time_ms,
-          coalesce(json_agg(json_build_object('level', p.level, 'failed', p.failed, 'hinted', p.hinted)) filter (where p.done), '[]') as levels
+          coalesce(json_agg(json_build_object('level', p.level, 'mistakes', p.mistakes, 'failed', p.failed, 'hinted', p.hinted)) filter (where p.done), '[]') as levels
         from days d
         join users u on u.id = d.user_id
         left join plays p on p.user_id = d.user_id and p.date = d.date
@@ -75,8 +73,7 @@ export function pgRepo(url = process.env.DATABASE_URL!): Repo {
         group by u.username, d.country`;
       return rows.map((r): BoardRow => ({
         username: String(r.username), country: String(r.country), played: r.played as number, solved: r.solved as number,
-        hinted: r.hinted as number, mistakes: r.mistakes as number, timeMs: r.time_ms as number,
-        levels: levelMarks(r.levels as { level: number; failed: boolean; hinted: boolean }[]),
+        score: dayScore(r.levels as { level: number; mistakes: number; failed: boolean; hinted: boolean }[]), timeMs: r.time_ms as number,
       }));
     },
     async history(id) {

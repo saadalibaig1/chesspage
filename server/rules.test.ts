@@ -1,4 +1,4 @@
-import { checkUsername, dateAllowed, levelMarks, rank } from './rules';
+import { checkUsername, dateAllowed, dayScore, rank } from './rules';
 
 describe('dateAllowed', () => {
   const now = new Date('2026-11-10T03:00:00Z');
@@ -25,21 +25,20 @@ describe('checkUsername', () => {
 });
 
 describe('rank', () => {
-  it('orders by solved, then fewer hinted, then fewer mistakes, then less time', () => {
-    const row = (username: string, solved: number, hinted: number, mistakes: number, timeMs: number) =>
-      ({ username, country: 'PK', solved, hinted, mistakes, timeMs, played: 6, levels: [] });
-    const rows = [row('e', 3, 0, 0, 1), row('a', 5, 0, 2, 9), row('c', 5, 1, 0, 1), row('b', 5, 0, 2, 5), row('d', 5, 0, 3, 1)];
-    expect(rank(rows).map((r) => r.username)).toEqual(['b', 'a', 'd', 'c', 'e']);
+  it('orders by score, then more levels solved, then less time', () => {
+    const row = (username: string, score: number, solved: number, timeMs: number) => ({ username, country: 'PK', score, solved, timeMs, played: 6 });
+    const rows = [row('d', 900, 3, 1), row('b', 1200, 4, 9), row('a', 1200, 5, 9), row('c', 1200, 4, 20)];
+    expect(rank(rows).map((r) => r.username)).toEqual(['a', 'b', 'c', 'd']);
   });
 });
 
-describe('levelMarks', () => {
-  it('gives one mark per level: solved, hinted (solved with a hint), failed, or null when not finished', () => {
+describe('dayScore', () => {
+  it('adds up the score of every finished level', () => {
     const done = [
-      { level: 0, failed: false, hinted: false },
-      { level: 2, failed: false, hinted: true },
-      { level: 5, failed: true, hinted: true },
+      { level: 0, mistakes: 0, hinted: false, failed: false },
+      { level: 5, mistakes: 1, hinted: false, failed: false },
+      { level: 3, mistakes: 5, hinted: false, failed: true },
     ];
-    expect(levelMarks(done)).toEqual(['solved', null, 'hinted', null, null, 'failed']);
+    expect(dayScore(done)).toBe(100 + 480);
   });
 });

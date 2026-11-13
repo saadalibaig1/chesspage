@@ -1,4 +1,4 @@
-import { levelMarks, type BoardRow } from './rules.js';
+import { dayScore, type BoardRow } from './rules.js';
 import type { LevelRow, NewUser, Repo, TimerRow, User } from './service.js';
 
 /** An in-memory Repo for tests. */
@@ -49,10 +49,8 @@ export function memoryRepo(): Repo {
           country: c,
           played: mine.length,
           solved: won.length,
-          hinted: won.filter((r) => r.hinted).length,
-          mistakes: mine.reduce((t, r) => t + r.mistakes, 0),
+          score: dayScore(mine),
           timeMs: won.reduce((t, r) => t + r.timeMs, 0),
-          levels: levelMarks(mine),
         });
       }
       return out;

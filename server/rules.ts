@@ -1,4 +1,4 @@
-import { LADDER_SIZE } from '../src/lib/daily.js';
+import { levelScore } from '../src/lib/results.js';
 
 const DAY_MS = 86_400_000;
 
@@ -23,19 +23,12 @@ export function checkUsername(name: string): string | null {
   return null;
 }
 
-/** How one level of the day ended for a player; null = not finished. */
-export type LevelMark = 'solved' | 'hinted' | 'failed' | null;
+/** One player's day on a board: levels played and solved, points, and time on solved levels. */
+export type BoardRow = { username: string; country: string; played: number; solved: number; score: number; timeMs: number };
 
-/** One player's day on a board. hinted = solved levels that used a hint. levels = one mark per level. */
-export type BoardRow = { username: string; country: string; played: number; solved: number; hinted: number; mistakes: number; timeMs: number; levels: LevelMark[] };
+/** The day's points: the sum of every finished level's score. */
+export const dayScore = (done: { level: number; mistakes: number; hinted: boolean; failed: boolean }[]) =>
+  done.reduce((t, d) => t + levelScore(d.level, d), 0);
 
-/** One mark per level of the day, from the finished levels. */
-export function levelMarks(done: { level: number; failed: boolean; hinted: boolean }[]): LevelMark[] {
-  const marks: LevelMark[] = Array(LADDER_SIZE).fill(null);
-  for (const d of done) marks[d.level] = d.failed ? 'failed' : d.hinted ? 'hinted' : 'solved';
-  return marks;
-}
-
-/** More solved first; then fewer hinted solves, fewer wrong moves, less time. */
-export const rank = (rows: BoardRow[]) =>
-  [...rows].sort((a, b) => b.solved - a.solved || a.hinted - b.hinted || a.mistakes - b.mistakes || a.timeMs - b.timeMs);
+/** More points first; then more levels solved, then less time. */
+export const rank = (rows: BoardRow[]) => [...rows].sort((a, b) => b.score - a.score || b.solved - a.solved || a.timeMs - b.timeMs);

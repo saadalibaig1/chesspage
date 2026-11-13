@@ -3,7 +3,6 @@ import { Sheet } from './Sheet';
 import { api, setDevUser, signedIn, signInWithGoogle, signOut, type Board, type BoardRow, type Profile } from '../lib/api';
 import { flag, isCountry } from '../lib/countries';
 import { CountryPicker } from './CountryPicker';
-import { formatTime } from '../lib/results';
 
 const PICK_KEY = 'chesspage:board-country';
 
@@ -22,27 +21,13 @@ function startCountry(profile: Profile | null): string {
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-/** One player: rank, name, a small tile per level (as in the game), and the tie-breakers, each with its own symbol. */
+/** One player: name, levels solved, points. */
 function Row({ r, you }: { r: BoardRow; you: boolean }) {
-  const said = [
-    `${r.solved} of ${r.played} solved`,
-    r.mistakes > 0 && plural(r.mistakes, 'wrong move', 'wrong moves'),
-    r.hinted > 0 && plural(r.hinted, 'hint', 'hints'),
-    r.solved > 0 && `time ${formatTime(r.timeMs)}`,
-  ].filter(Boolean).join(', ');
   return (
-    <li className={you ? 'you' : undefined} aria-label={`${r.rank}. ${r.username}${you ? ' (you)' : ''}: ${said}`}>
-      <span className="place num" aria-hidden="true">{r.rank}</span>
-      <span className="who" aria-hidden="true">
-        <b>{flag(r.country)} {r.username}{you && <em>You</em>}</b>
-        <span className="facts">
-          <span className="minis">{(r.levels ?? []).map((m, i) => <i key={i} className={m ?? undefined} />)}</span>
-          {r.mistakes > 0 && <span>✖️ {r.mistakes}</span>}
-          {r.hinted > 0 && <span>💡 {r.hinted}</span>}
-          {r.solved > 0 && <span>⏱️ {formatTime(r.timeMs)}</span>}
-        </span>
-      </span>
-      <span className="score num" aria-hidden="true">{r.solved}<small>/{r.played}</small></span>
+    <li className={you ? 'you' : undefined} aria-label={`${r.rank}. ${r.username}${you ? ' (you)' : ''}: ${r.solved} of ${r.played} solved, ${r.score} points`}>
+      <b className="who" aria-hidden="true">{r.username}</b>
+      <span className="solved num" aria-hidden="true">{r.solved}/{r.played}</span>
+      <span className="score num" aria-hidden="true">{r.score.toLocaleString('en-US')}</span>
     </li>
   );
 }
@@ -104,20 +89,13 @@ export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
       ) : (
         <>
           <p className="center muted small">{plural(board.players, 'player', 'players')} today</p>
+          <div className="board-head" aria-hidden="true"><span>Player</span><span>Solved</span><span>Score</span></div>
           <ol className="board-list">
             {board.rows.map((r) => <Row key={r.username} r={r} you={r.username === profile?.username} />)}
             {board.you && !youShown && <li className="gap" aria-hidden="true">⋯</li>}
             {board.you && !youShown && <Row r={board.you} you />}
           </ol>
-          <p className="legend">
-            <span><i className="solved" /> solved</span>
-            <span><i className="hinted" /> with a hint</span>
-            <span><i className="failed" /> out of tries</span>
-            <span>✖️ wrong moves</span>
-            <span>💡 hints</span>
-            <span>⏱️ time</span>
-          </p>
-          <p className="center muted small">Most levels solved wins. Ties go to fewer hints, then fewer wrong moves, then less time.</p>
+          <p className="center muted small">Each level is worth 100 to 600 points by its Elo. A wrong move takes off 20%, a hint 30%.</p>
         </>
       )}
       {onSignIn && !profile?.username && (

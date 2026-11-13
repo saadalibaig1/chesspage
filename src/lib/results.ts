@@ -21,6 +21,12 @@ export function withLevel(day: DayResult, i: number, r: LevelResult): DayResult 
 
 export const triesLeft = (mistakes: number) => Math.max(0, TRIES - mistakes);
 
+/** Leaderboard points for one level: 100 to 600 by level (1000 to 2000 Elo), 20% off per wrong move, 30% off for a hint, 0 when out of tries. */
+export function levelScore(level: number, r: Pick<LevelResult, 'mistakes' | 'hinted' | 'failed'>): number {
+  if (r.failed) return 0;
+  return Math.round((level + 1) * 100 * 0.8 ** r.mistakes * (r.hinted ? 0.7 : 1));
+}
+
 // The cross carries U+FE0F so it renders as the grey emoji, not a text glyph.
 export const MISS = '\u2716\uFE0F';
 export const CROWN = '👑';

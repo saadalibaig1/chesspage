@@ -1328,18 +1328,14 @@ input[role='switch']:checked::after {
 
 .board-list {
   list-style: none;
-  margin: 12px 0 8px;
+  margin: 4px 0 8px;
   padding: 0;
   max-height: min(52dvh, 420px);
   overflow-y: auto;
 }
 
 .board-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  padding: 6px 8px;
+  min-height: 48px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -1347,96 +1343,53 @@ input[role='switch']:checked::after {
   background: color-mix(in srgb, var(--green), #fff 85%);
 }
 
-.board-list .who em {
-  margin-left: 6px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--text);
-  color: #fff;
-  font-size: 10px;
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  vertical-align: 2px;
-}
-
-/* A level's result as a small tile, matching the tiles above the board. */
-.minis {
-  display: inline-flex;
-  gap: 2px;
-}
-
-.minis i,
-.legend i {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border: 1.5px solid var(--line);
-}
-
-.minis i.solved,
-.legend i.solved { border: 0; background: var(--green); }
-.minis i.hinted,
-.legend i.hinted { border: 0; background: color-mix(in srgb, var(--green), #fff 55%); }
-.minis i.failed,
-.legend i.failed { border: 0; background: var(--red); }
-
-.board-list .facts {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 12px;
-  margin: 4px 0 6px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.legend i { margin-right: 4px; vertical-align: -1px; }
-
 .board-list li.gap {
   justify-content: center;
   min-height: 28px;
   color: var(--muted);
 }
 
-.board-list .place {
-  width: 28px;
+/* Columns: name, levels solved, points. */
+.board-head,
+.board-list li {
+  display: grid;
+  grid-template-columns: 1fr 56px 64px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.board-list li.gap { display: flex; }
+
+.board-head {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 11px;
   font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.board-head span:not(:first-child),
+.board-list .solved,
+.board-list .score {
   text-align: right;
 }
 
 .board-list .who {
-  flex: 1;
-  display: grid;
-  min-width: 0;
-}
-
-.board-list .who b {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.board-list .score {
-  font-size: 20px;
+.board-list .solved {
+  color: var(--muted);
   font-weight: 700;
 }
 
-.board-list .score small {
-  color: var(--muted);
-  font-size: 13px;
+.board-list .score {
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .form {

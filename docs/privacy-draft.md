@@ -1,6 +1,6 @@
 # ChessPage privacy policy (draft)
 
-Draft for the client to review. The page version is src/components/Privacy.tsx (chesspage.com/privacy), with Boston Venture Studios as the operator and paul@bvs.net as the contact. Replace the parts in [brackets] before publishing at chesspage.com/privacy. This is not legal advice; the client may want a lawyer to check it.
+Draft for the client to review. The page version is src/components/Privacy.tsx (chesspage.com/privacy), with Boston Venture Studios as the operator and hello@chesspage.com as the contact. Replace the parts in [brackets] before publishing at chesspage.com/privacy. This is not legal advice; the client may want a lawyer to check it.
 
 ---
 

@@ -5,7 +5,7 @@ export function Privacy() {
       <a className="doc-back" href="/">← ChessPage</a>
       <h1>Privacy Policy</h1>
       <p className="muted">Last updated: November 13, 2026</p>
-      <p>ChessPage (chesspage.com) is a daily chess puzzle game run by Boston Venture Studios. Contact: <a href="mailto:paul@bvs.net">paul@bvs.net</a>.</p>
+      <p>ChessPage (chesspage.com) is a daily chess puzzle game run by Boston Venture Studios. Contact: <a href="mailto:hello@chesspage.com">hello@chesspage.com</a>.</p>
 
       <h2>If you play without signing in</h2>
       <ul>
@@ -36,7 +36,7 @@ export function Privacy() {
       <h2>Your choices</h2>
       <ul>
         <li>You can change your username and country at any time in Settings.</li>
-        <li>To delete your account and all its data, email <a href="mailto:paul@bvs.net">paul@bvs.net</a> from the address you signed in with. We delete it within 30 days.</li>
+        <li>To delete your account and all its data, email <a href="mailto:hello@chesspage.com">hello@chesspage.com</a> from the address you signed in with. We delete it within 30 days.</li>
         <li>You can always play without signing in.</li>
       </ul>
 
