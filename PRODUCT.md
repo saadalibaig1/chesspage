@@ -29,7 +29,7 @@ Finite, shared and social, where chess.com and Lichess puzzles are endless solo 
 - Intro popup on first visit explains the rules, as Wordle does. A success popup congratulates on completion.
 - The share result is plain text plus emoji (Wordle-style) to copy and paste into Slack, chat or social posts.
 - The puzzle's idea (such as Fork or Mate in 2) shows above the board from the start, next to the rating. Hard Mode hides it until the level ends.
-- A wrong move uses one of the level's five tries and adds a ♟️ to the row above the board (a dot for each try left, a 👑 once solved, like the share row); repeating the same wrong move does not. Out of tries ends that level only: the solution plays out with arrows, and the full solution is shown. A two-step hint (the piece, then its path) is available unless Hard Mode is on.
+- A wrong move uses one of the level's five tries and adds a ✖️ to the row above the board (a dot for each try left, a 👑 once solved, like the share row); repeating the same wrong move does not. Out of tries ends that level only: the solution plays out with arrows, and the full solution is shown. A two-step hint (the piece, then its path) is available unless Hard Mode is on.
 
 ## Capabilities and Constraints
 

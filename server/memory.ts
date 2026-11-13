@@ -1,4 +1,4 @@
-import type { BoardRow } from './rules.js';
+import { levelMarks, type BoardRow } from './rules.js';
 import type { LevelRow, NewUser, Repo, TimerRow, User } from './service.js';
 
 /** An in-memory Repo for tests. */
@@ -42,7 +42,7 @@ export function memoryRepo(): Repo {
       for (const [key, c] of days) {
         const [id, d] = key.split('|');
         if (d !== date || (country && c !== country)) continue;
-        const mine = [...levels].filter(([k]) => k.startsWith(`${id}|${date}|`)).map(([, r]) => r).filter((r) => r.done);
+        const mine = [...levels].filter(([k]) => k.startsWith(`${id}|${date}|`)).map(([k, r]) => ({ ...r, level: Number(k.split('|')[2]) })).filter((r) => r.done);
         const won = mine.filter((r) => !r.failed);
         out.push({
           username: users.get(id)!.username!,
@@ -52,6 +52,7 @@ export function memoryRepo(): Repo {
           hinted: won.filter((r) => r.hinted).length,
           mistakes: mine.reduce((t, r) => t + r.mistakes, 0),
           timeMs: won.reduce((t, r) => t + r.timeMs, 0),
+          levels: levelMarks(mine),
         });
       }
       return out;

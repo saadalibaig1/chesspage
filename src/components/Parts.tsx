@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Board } from './Board';
 import type { Sq } from '../lib/puzzle';
-import { CROWN, PAWN, type Mark } from '../lib/results';
+import { CROWN, MISS, type Mark } from '../lib/results';
 import type { usePuzzle } from './usePuzzle';
 
 type G = ReturnType<typeof usePuzzle>;
@@ -71,7 +71,7 @@ export function InfoRow({ idea, elo, marks, label }: InfoProps) {
       {marks && (
         <span className="marks" role="img" aria-label={label}>
           {marks.map((m, i) => (
-            <span key={i} className={m}>{m === 'miss' ? PAWN : m === 'crown' ? CROWN : null}</span>
+            <span key={i} className={m}>{m === 'miss' ? MISS : m === 'crown' ? CROWN : null}</span>
           ))}
         </span>
       )}

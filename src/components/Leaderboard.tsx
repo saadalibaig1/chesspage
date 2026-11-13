@@ -20,16 +20,29 @@ function startCountry(profile: Profile | null): string {
   return isCountry(region) ? region : 'US';
 }
 
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** One player: rank, name, a small tile per level (as in the game), and the tie-breakers, each with its own symbol. */
 function Row({ r, you }: { r: BoardRow; you: boolean }) {
-  const misses = `${r.mistakes} ${r.mistakes === 1 ? 'miss' : 'misses'}`;
+  const said = [
+    `${r.solved} of ${r.played} solved`,
+    r.mistakes > 0 && plural(r.mistakes, 'wrong move', 'wrong moves'),
+    r.hinted > 0 && plural(r.hinted, 'hint', 'hints'),
+    r.solved > 0 && `time ${formatTime(r.timeMs)}`,
+  ].filter(Boolean).join(', ');
   return (
-    <li className={you ? 'you' : undefined}>
-      <span className="place num">{r.rank}</span>
-      <span className="who">
-        <b>{flag(r.country)} {r.username}</b>
-        <small>{r.solved ? `${misses} · ${formatTime(r.timeMs)}` : misses}{r.hinted ? ' · 💡' : ''}</small>
+    <li className={you ? 'you' : undefined} aria-label={`${r.rank}. ${r.username}${you ? ' (you)' : ''}: ${said}`}>
+      <span className="place num" aria-hidden="true">{r.rank}</span>
+      <span className="who" aria-hidden="true">
+        <b>{flag(r.country)} {r.username}{you && <em>You</em>}</b>
+        <span className="facts">
+          <span className="minis">{(r.levels ?? []).map((m, i) => <i key={i} className={m ?? undefined} />)}</span>
+          {r.mistakes > 0 && <span>✖️ {r.mistakes}</span>}
+          {r.hinted > 0 && <span>💡 {r.hinted}</span>}
+          {r.solved > 0 && <span>⏱️ {formatTime(r.timeMs)}</span>}
+        </span>
       </span>
-      <span className="score num">{r.solved}/{r.played}</span>
+      <span className="score num" aria-hidden="true">{r.solved}<small>/{r.played}</small></span>
     </li>
   );
 }
@@ -90,12 +103,21 @@ export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
         <p className="center muted small">{onSignIn ? 'No one has played yet today. Be the first.' : 'No one on the board yet today.'}</p>
       ) : (
         <>
-          <p className="center muted small">{board.players} {board.players === 1 ? 'player' : 'players'} · levels solved</p>
+          <p className="center muted small">{plural(board.players, 'player', 'players')} today</p>
           <ol className="board-list">
             {board.rows.map((r) => <Row key={r.username} r={r} you={r.username === profile?.username} />)}
             {board.you && !youShown && <li className="gap" aria-hidden="true">⋯</li>}
             {board.you && !youShown && <Row r={board.you} you />}
           </ol>
+          <p className="legend">
+            <span><i className="solved" /> solved</span>
+            <span><i className="hinted" /> with a hint</span>
+            <span><i className="failed" /> out of tries</span>
+            <span>✖️ wrong moves</span>
+            <span>💡 hints</span>
+            <span>⏱️ time</span>
+          </p>
+          <p className="center muted small">Most levels solved wins. Ties go to fewer hints, then fewer wrong moves, then less time.</p>
         </>
       )}
       {onSignIn && !profile?.username && (

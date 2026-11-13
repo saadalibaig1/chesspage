@@ -30,7 +30,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
         <ul>
           <li>Tap any level to play it. Do one, a few, or all six, in any order.</li>
           <li>Find the best move. The idea above the board, such as <b>Fork</b>, tells you what to look for. Drag or tap a piece to play it.</li>
-          <li>You get {TRIES} tries on each level. A wrong move uses a try and shows a ♟️. The same wrong move again is free.</li>
+          <li>You get {TRIES} tries on each level. A wrong move uses a try and shows a ✖️. The same wrong move again is free.</li>
           <li>Out of tries? That level ends and its solution plays. The other levels stay open.</li>
         </ul>
         <h4>Example</h4>

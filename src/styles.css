@@ -457,7 +457,7 @@ html:has(.doc) #root {
   font-variant-numeric: tabular-nums;
 }
 
-/* A pawn per wrong try, a dot per try left, a crown once solved: the share row, live. */
+/* A cross per wrong try, a dot per try left, a crown once solved: the share row, live. */
 .marks {
   flex: none;
   display: flex;
@@ -1338,14 +1338,72 @@ input[role='switch']:checked::after {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 52px;
-  padding: 0 8px;
+  min-height: 56px;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--line);
 }
 
 .board-list li.you {
   background: color-mix(in srgb, var(--green), #fff 85%);
 }
+
+.board-list .who em {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--text);
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
+/* A level's result as a small tile, matching the tiles above the board. */
+.minis {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.minis i,
+.legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--line);
+}
+
+.minis i.solved,
+.legend i.solved { border: 0; background: var(--green); }
+.minis i.hinted,
+.legend i.hinted { border: 0; background: color-mix(in srgb, var(--green), #fff 55%); }
+.minis i.failed,
+.legend i.failed { border: 0; background: var(--red); }
+
+.board-list .facts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 4px 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.legend i { margin-right: 4px; vertical-align: -1px; }
 
 .board-list li.gap {
   justify-content: center;
@@ -1365,21 +1423,20 @@ input[role='switch']:checked::after {
   min-width: 0;
 }
 
-.board-list .who b,
-.board-list .who small {
+.board-list .who b {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.board-list .who small {
-  color: var(--muted);
-  font-size: 12px;
+.board-list .score {
+  font-size: 20px;
+  font-weight: 700;
 }
 
-.board-list .score {
-  font-size: 18px;
-  font-weight: 700;
+.board-list .score small {
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .form {

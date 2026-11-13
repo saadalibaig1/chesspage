@@ -1,3 +1,5 @@
+import { LADDER_SIZE } from '../src/lib/daily.js';
+
 const DAY_MS = 86_400_000;
 
 /** The server serves and scores only the current day: the UTC date ±1, which covers every time zone. */
@@ -21,8 +23,18 @@ export function checkUsername(name: string): string | null {
   return null;
 }
 
-/** One player's day on a board. hinted = solved levels that used a hint. */
-export type BoardRow = { username: string; country: string; played: number; solved: number; hinted: number; mistakes: number; timeMs: number };
+/** How one level of the day ended for a player; null = not finished. */
+export type LevelMark = 'solved' | 'hinted' | 'failed' | null;
+
+/** One player's day on a board. hinted = solved levels that used a hint. levels = one mark per level. */
+export type BoardRow = { username: string; country: string; played: number; solved: number; hinted: number; mistakes: number; timeMs: number; levels: LevelMark[] };
+
+/** One mark per level of the day, from the finished levels. */
+export function levelMarks(done: { level: number; failed: boolean; hinted: boolean }[]): LevelMark[] {
+  const marks: LevelMark[] = Array(LADDER_SIZE).fill(null);
+  for (const d of done) marks[d.level] = d.failed ? 'failed' : d.hinted ? 'hinted' : 'solved';
+  return marks;
+}
 
 /** More solved first; then fewer hinted solves, fewer wrong moves, less time. */
 export const rank = (rows: BoardRow[]) =>

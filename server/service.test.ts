@@ -123,6 +123,9 @@ describe('board', () => {
     const pk = await board(repo, DATE, 'PK', a, NOW);
     expect(pk.rows.map((r) => [r.rank, r.username, r.solved])).toEqual([[1, 'bob', 2], [2, 'alice', 1]]);
     expect(pk.you).toMatchObject({ rank: 2, username: 'alice', mistakes: 1 });
+    // Each row carries the result of every level, for the small tiles on the board.
+    expect(pk.rows[0].levels).toEqual(['solved', 'hinted', null, null, null, null]);
+    expect(pk.you!.levels).toEqual(['solved', null, null, null, null, null]);
 
     const world = await board(repo, DATE, null, null, NOW);
     expect(world.rows.map((r) => r.username)).toEqual(['bob', 'carol', 'alice']);

@@ -116,5 +116,5 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
 }
 
 export type Profile = { username: string | null; country: string | null };
-export type BoardRow = { rank: number; username: string; country: string; played: number; solved: number; hinted: number; mistakes: number; timeMs: number };
+export type BoardRow = { rank: number; username: string; country: string; played: number; solved: number; hinted: number; mistakes: number; timeMs: number; levels: ('solved' | 'hinted' | 'failed' | null)[] };
 export type Board = { date: string; country: string | null; players: number; rows: BoardRow[]; you: BoardRow | null };
