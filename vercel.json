@@ -31,6 +31,10 @@
     {
       "source": "/:y(\\d{4})/:m(\\d{2})/:d(\\d{2})/:level([1-6])",
       "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/index.html"
     }
   ]
 }

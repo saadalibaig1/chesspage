@@ -1,3 +1,5 @@
+import { Footer } from './Privacy';
+
 type Props = {
   today: string;
   /** Shown only while sign-in is on and the player is signed out. */
@@ -27,6 +29,7 @@ export function Splash({ today, onLogin, error, onPlay }: Props) {
       </div>
       {error && <p className="splash-error" role="alert">{error}</p>}
       <p className="splash-date">{longDate(today)}</p>
+      <Footer />
     </main>
   );
 }

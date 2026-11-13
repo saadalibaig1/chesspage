@@ -22,7 +22,7 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-l: env(safe-area-inset-left, 0px);
   --safe-r: env(safe-area-inset-right, 0px);
-  --chrome: 300px; /* header 56 + modes 44 + tiles 46 + info 40 + stage 12 + strip 64 + breathing room 38 */
+  --chrome: 322px; /* header 56 + modes 44 + tiles 46 + info 40 + stage 12 + strip 64 + footer 22 + breathing room 38 */
   --slack: calc(100dvh - var(--chrome) - var(--board) - var(--safe-t) - var(--safe-b)); /* height left over on tall phones */
   --board: min(
     calc(100vw - 32px - var(--safe-l) - var(--safe-r)),
@@ -242,6 +242,60 @@ button {
   .splash-tag { max-width: 440px; font-size: 32px; }
   .pill { width: 160px; height: 52px; }
 }
+
+/* ---------- Footer and privacy page ---------- */
+
+/* Small print at the bottom, as on Wordle. */
+.legal {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 0 6px;
+  font-size: 11px;
+  line-height: 12px;
+  color: var(--muted);
+}
+
+.legal > * + * {
+  padding-left: 8px;
+  border-left: 1px solid var(--line-strong);
+}
+
+.legal a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.legal a:hover { text-decoration: underline; }
+
+.splash .legal {
+  position: fixed;
+  bottom: calc(var(--safe-b) + 8px);
+  left: 0;
+  right: 0;
+}
+
+html:has(.doc),
+html:has(.doc) body,
+html:has(.doc) #root {
+  overflow: auto;
+}
+
+.doc {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: calc(var(--safe-t) + 24px) 16px calc(var(--safe-b) + 48px);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.doc h1 { margin: 16px 0 4px; font: 700 32px/1.1 var(--serif); }
+.doc h2 { margin: 28px 0 8px; font-size: 17px; }
+.doc ul { padding-left: 20px; }
+.doc li + li { margin-top: 4px; }
+.doc a { color: inherit; }
+.doc-back { font-weight: 700; text-decoration: none; }
 
 /* ---------- Mode tabs ---------- */
 
@@ -1431,6 +1485,7 @@ input[role='switch']:checked::after {
   .info { grid-column: 2; grid-row: 4; width: 100%; max-width: 360px; }
   .strip { grid-column: 2; grid-row: 5; width: auto; min-width: 300px; align-self: end; margin: 0 0 16px; }
   .chip { left: auto; right: calc(var(--safe-r) + 12px); }
+  .app > .legal { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

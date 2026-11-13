@@ -11,6 +11,7 @@ import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
 import { SIGNIN, api, loginAsked, onAuthChange, setLoginAsked, signedIn, signInWithGoogle, startAuth, type Profile } from './lib/api';
 import { Splash } from './components/Splash';
+import { Footer } from './components/Privacy';
 import { countryName, flag } from './lib/countries';
 import { AccountModal, LeaderboardModal, SignInModal } from './components/Leaderboard';
 
@@ -249,6 +250,7 @@ export default function App() {
         />
       )}
 
+      <Footer />
       {modal === 'help' && <HelpModal onClose={closeHelp} />}
       {modal === 'stats' && (
         <StatsModal
