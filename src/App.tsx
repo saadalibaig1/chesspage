@@ -5,7 +5,7 @@ import { Icon } from './components/Icon';
 import { PieceSprite } from './components/pieces';
 import { HelpModal, SettingsModal, StatsModal } from './components/Modals';
 import { dailyLadder, dailyTimer, dayNumber, localDateKey, msUntilMidnight, randomLadder, randomPuzzle, TIMER_LEVEL, type Pool, type Puzzle } from './lib/daily';
-import type { DayResult, Mode } from './lib/results';
+import { dayProgress, type DayResult, type Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
@@ -167,7 +167,17 @@ export default function App() {
       const p = await api<Profile>('/me').catch(() => null);
       play(p?.username && p.country ? null : 'account');
     };
-    return <Splash today={today} onLogin={SIGNIN && !signedIn() ? login : undefined} error={splashError} onPlay={() => play()} />;
+    const progress = dayProgress(test ? undefined : store.ladder.history[today]);
+    // Coming back to today's Daily: Continue opens it, See results also shows the stats.
+    const onPlay = () => {
+      if (progress.state === 'new') return play();
+      update((s) => ({ ...s, mode: 'ladder' }));
+      play(progress.state === 'done' ? 'stats' : null);
+    };
+    return (
+      <Splash today={today} progress={progress} name={profile?.username} error={splashError}
+        onLogin={SIGNIN && !signedIn() ? login : undefined} onPlay={onPlay} />
+    );
   }
 
   return (

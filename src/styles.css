@@ -187,6 +187,16 @@ button {
   height: 72px;
 }
 
+/* Coming back later in the day: a small icon and name on top, then the greeting, as on Wordle. */
+.splash.back .splash-logo { width: 48px; height: 48px; }
+
+.splash-brand {
+  margin: 8px 0 0;
+  font: 700 18px/1 var(--serif);
+}
+
+.splash.back .splash-title { margin-top: 48px; }
+
 .splash-title {
   margin: 20px 0 0;
   font: 700 44px/1 var(--serif);
@@ -238,6 +248,7 @@ button {
 
 @media (min-width: 600px) {
   .splash-logo { width: 88px; height: 88px; }
+  .splash.back .splash-logo { width: 56px; height: 56px; }
   .splash-title { font-size: 56px; }
   .splash-tag { max-width: 440px; font-size: 32px; }
   .pill { width: 160px; height: 52px; }

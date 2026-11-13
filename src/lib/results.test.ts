@@ -1,5 +1,5 @@
 import {
-  emptyDay, formatTime, ladderStats, levelWord, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, tryMarks, withLevel, levelScore,
+  emptyDay, formatTime, ladderStats, levelWord, shareText, TIMER_MS, timerShareText, TRIES, triesLeft, tryMarks, withLevel, levelScore, dayProgress,
   type DayResult, type LevelResult,
 } from './results';
 
@@ -94,5 +94,18 @@ describe('levelScore', () => {
 
   it('gives nothing for a level out of tries', () => {
     expect(levelScore(5, { mistakes: 5, hinted: false, failed: true })).toBe(0);
+  });
+});
+
+describe('dayProgress', () => {
+  it('is new before any level is finished', () => {
+    expect(dayProgress(undefined)).toEqual({ state: 'new', played: 0, solved: 0 });
+    expect(dayProgress(emptyDay())).toEqual({ state: 'new', played: 0, solved: 0 });
+  });
+
+  it('is in progress after some levels, and done after all six', () => {
+    expect(dayProgress(day(2))).toEqual({ state: 'progress', played: 3, solved: 2 });
+    const all = { n: 5, levels: Array.from({ length: 6 }, (_, i) => lv({ failed: i === 0 })) };
+    expect(dayProgress(all)).toEqual({ state: 'done', played: 6, solved: 5 });
   });
 });

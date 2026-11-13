@@ -21,6 +21,15 @@ export function withLevel(day: DayResult, i: number, r: LevelResult): DayResult 
 
 export const triesLeft = (mistakes: number) => Math.max(0, TRIES - mistakes);
 
+export type DayProgress = { state: 'new' | 'progress' | 'done'; played: number; solved: number };
+
+/** How far the player is through today's ladder, for the front page. */
+export function dayProgress(day: DayResult | undefined): DayProgress {
+  const played = day ? day.levels.filter(Boolean).length : 0;
+  const solved = day?.n ?? 0;
+  return { state: played === 0 ? 'new' : played < LADDER_SIZE ? 'progress' : 'done', played, solved };
+}
+
 /** Leaderboard points for one level: 100 to 600 by level (1000 to 2000 Elo), 20% off per wrong move, 30% off for a hint, 0 when out of tries. */
 export function levelScore(level: number, r: Pick<LevelResult, 'mistakes' | 'hinted' | 'failed'>): number {
   if (r.failed) return 0;
