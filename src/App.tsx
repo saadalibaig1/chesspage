@@ -9,7 +9,8 @@ import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
-import { SIGNIN, api, loginAsked, onAuthChange, setLoginAsked, signedIn, startAuth, type Profile } from './lib/api';
+import { SIGNIN, api, loginAsked, onAuthChange, setLoginAsked, signedIn, signInWithGoogle, startAuth, type Profile } from './lib/api';
+import { Splash } from './components/Splash';
 import { countryName, flag } from './lib/countries';
 import { AccountModal, LeaderboardModal, SignInModal } from './components/Leaderboard';
 
@@ -28,7 +29,10 @@ export default function App() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [loadTry, setLoadTry] = useState(0);
   const [testNonce, setTestNonce] = useState(0);
-  const [modal, setModal] = useState<Modal>(store.introSeen ? null : 'help');
+  // The front page shows on every visit, except when a level link opens a puzzle straight away.
+  const [splash, setSplash] = useState(() => linkLevel === null);
+  const [splashError, setSplashError] = useState('');
+  const [modal, setModal] = useState<Modal>(store.introSeen || linkLevel === null ? null : 'help');
   const [lastResult, setLastResult] = useState<DayResult | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -145,6 +149,25 @@ export default function App() {
     setTimeout(() => setModal((m) => m ?? 'signin'), 2200);
   }, []);
   const toModal = useCallback((m: Modal) => () => setModal(m), []);
+
+  if (splash) {
+    const play = (next: Modal = null) => {
+      setSplash(false);
+      setModal(next ?? (store.introSeen ? null : 'help'));
+    };
+    // Log in opens Google's window straight from the tap. A new player then picks a username and country.
+    const login = async () => {
+      setSplashError('');
+      try {
+        await signInWithGoogle();
+      } catch (e) {
+        return setSplashError((e as Error).message);
+      }
+      const p = await api<Profile>('/me').catch(() => null);
+      play(p?.username && p.country ? null : 'account');
+    };
+    return <Splash today={today} onLogin={SIGNIN && !signedIn() ? login : undefined} error={splashError} onPlay={() => play()} />;
+  }
 
   return (
     <div className="app">
