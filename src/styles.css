@@ -1387,6 +1387,11 @@ input[role='switch']:checked::after {
   text-align: right;
 }
 
+.board-list .who .flag {
+  margin-right: 8px;
+  font-weight: 400;
+}
+
 .board-list .who {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1407,6 +1412,13 @@ input[role='switch']:checked::after {
   display: grid;
   gap: 16px;
   margin-top: 8px;
+}
+
+/* Two keys of equal weight, side by side. */
+.form-keys {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .form label,

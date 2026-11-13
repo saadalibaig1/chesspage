@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Sheet } from './Sheet';
 import { api, setDevUser, signedIn, signInWithGoogle, signOut, type Board, type BoardRow, type Profile } from '../lib/api';
-import { flag, isCountry } from '../lib/countries';
+import { countryName, flag, isCountry } from '../lib/countries';
 import { CountryPicker } from './CountryPicker';
 
 const PICK_KEY = 'chesspage:board-country';
@@ -21,11 +21,11 @@ function startCountry(profile: Profile | null): string {
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-/** One player: name, levels solved, points. */
-function Row({ r, you }: { r: BoardRow; you: boolean }) {
+/** One player: name (with their flag on the World board), levels solved, points. */
+function Row({ r, you, world }: { r: BoardRow; you: boolean; world: boolean }) {
   return (
-    <li className={you ? 'you' : undefined} aria-label={`${r.rank}. ${r.username}${you ? ' (you)' : ''}: ${r.solved} of ${r.played} solved, ${r.score} points`}>
-      <b className="who" aria-hidden="true">{r.username}</b>
+    <li className={you ? 'you' : undefined} aria-label={`${r.rank}. ${r.username}${world ? `, ${countryName(r.country)}` : ''}${you ? ' (you)' : ''}: ${r.solved} of ${r.played} solved, ${r.score} points`}>
+      <b className="who" aria-hidden="true">{world && <span className="flag">{flag(r.country)}</span>}{r.username}</b>
       <span className="solved num" aria-hidden="true">{r.solved}/{r.played}</span>
       <span className="score num" aria-hidden="true">{r.score.toLocaleString('en-US')}</span>
     </li>
@@ -91,11 +91,10 @@ export function LeaderboardModal({ today, profile, onSignIn, onClose }: Props) {
           <p className="center muted small">{plural(board.players, 'player', 'players')} today</p>
           <div className="board-head" aria-hidden="true"><span>Player</span><span>Solved</span><span>Score</span></div>
           <ol className="board-list">
-            {board.rows.map((r) => <Row key={r.username} r={r} you={r.username === profile?.username} />)}
+            {board.rows.map((r) => <Row key={r.username} r={r} you={r.username === profile?.username} world={tab === 'world'} />)}
             {board.you && !youShown && <li className="gap" aria-hidden="true">⋯</li>}
-            {board.you && !youShown && <Row r={board.you} you />}
+            {board.you && !youShown && <Row r={board.you} you world={tab === 'world'} />}
           </ol>
-          <p className="center muted small">Each level is worth 100 to 600 points by its Elo. A wrong move takes off 20%, a hint 30%.</p>
         </>
       )}
       {onSignIn && !profile?.username && (
@@ -204,9 +203,11 @@ export function AccountModal({ profile, onSaved, onClose }: AccountProps) {
           <small>If you already played today, a change counts from tomorrow.</small>
         </div>
         {error && <p className="error" role="alert">{error}</p>}
-        <button type="submit" className="key go wide" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
+        <div className="form-keys">
+          <button type="button" className="key" onClick={() => (signOut(), onClose())}>Sign out</button>
+          <button type="submit" className="key go" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
+        </div>
       </form>
-      <button type="button" className="link-button" onClick={() => (signOut(), onClose())}>Sign out</button>
     </Sheet>
   );
 }
