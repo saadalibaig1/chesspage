@@ -9,7 +9,7 @@ import type { DayResult, Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
-import { SIGNIN, api, loginAsked, setLoginAsked, signedIn, type Profile } from './lib/api';
+import { SIGNIN, api, loginAsked, onAuthChange, setLoginAsked, signedIn, startAuth, type Profile } from './lib/api';
 import { countryName, flag } from './lib/countries';
 import { AccountModal, LeaderboardModal, SignInModal } from './components/Leaderboard';
 
@@ -65,7 +65,17 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sign-in (behind the VITE_SIGNIN flag): load the signed-in player's profile.
+  // Sign-in (behind the VITE_SIGNIN flag): reload the profile on every sign-in or sign-out.
+  // Signing in from the one-time prompt moves on to the username sheet.
+  useEffect(() => {
+    if (!SIGNIN) return;
+    startAuth();
+    return onAuthChange(() => {
+      setProfileNonce((n) => n + 1);
+      if (signedIn()) setModal((m) => (m === 'signin' ? 'account' : m));
+    });
+  }, []);
+
   useEffect(() => {
     if (!SIGNIN || !signedIn()) return setProfile(null);
     api<Profile>('/me').then(setProfile).catch(() => setProfile(null));
@@ -242,6 +252,7 @@ export default function App() {
       {modal === 'board' && <LeaderboardModal today={today} profile={profile} onSignIn={SIGNIN ? () => setModal('account') : undefined} onClose={closeModal} />}
       {modal === 'account' && (
         <AccountModal
+          key={profile?.username ?? ''} // starts over with the saved name once the profile loads
           profile={profile}
           onSaved={(p) => (p ? setProfile(p) : setProfileNonce((n) => n + 1))}
           onClose={closeModal}

@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Sheet } from './Sheet';
-import { api, devUser, setDevUser, signInWithGoogle, type Board, type BoardRow, type Profile } from '../lib/api';
+import { api, setDevUser, signedIn, signInWithGoogle, signOut, type Board, type BoardRow, type Profile } from '../lib/api';
 import { flag, isCountry } from '../lib/countries';
 import { CountryPicker } from './CountryPicker';
 import { formatTime } from '../lib/results';
@@ -174,13 +174,13 @@ export function AccountModal({ profile, onSaved, onClose }: AccountProps) {
     }
   }
 
-  if (!devUser()) {
+  if (!signedIn()) {
     return (
       <Sheet title="Account" onClose={onClose}>
         <h3 className="caps">Account</h3>
         <SignInPanel />
         {import.meta.env.DEV && (
-          <form className="form" onSubmit={(e) => (e.preventDefault(), dev.trim() && (setDevUser(dev.trim()), onSaved(null), onClose()))}>
+          <form className="form" onSubmit={(e) => (e.preventDefault(), dev.trim() && setDevUser(dev.trim()))}>
             <label><span>Test sign-in (dev only)</span><input value={dev} onChange={(e) => setDev(e.target.value)} placeholder="any name" /></label>
             <button type="submit" className="key wide">Test sign-in</button>
           </form>
@@ -206,7 +206,7 @@ export function AccountModal({ profile, onSaved, onClose }: AccountProps) {
         {error && <p className="error" role="alert">{error}</p>}
         <button type="submit" className="key go wide" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
       </form>
-      <button type="button" className="link-button" onClick={() => (setDevUser(null), onSaved(null), onClose())}>Sign out</button>
+      <button type="button" className="link-button" onClick={() => (signOut(), onClose())}>Sign out</button>
     </Sheet>
   );
 }

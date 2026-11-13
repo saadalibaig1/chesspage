@@ -20,22 +20,68 @@ export function setDevUser(name: string | null) {
   } catch {
     /* private mode: stay signed out */
   }
+  changed();
 }
 
-/** The Authorization header for the signed-in player, or null for a guest. Firebase plugs in here later. */
+type Firebase = typeof import('./firebase');
+let fb: Firebase | null = null;
+let googleUser = false;
+const listeners = new Set<() => void>();
+
+/** Calls fn whenever someone signs in or out. Returns the unsubscribe. */
+export function onAuthChange(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+const changed = () => listeners.forEach((fn) => fn());
+
+/** Loads Firebase at startup (only with VITE_SIGNIN), so it is ready before the sign-in tap. */
+export function startAuth() {
+  if (!SIGNIN || fb) return;
+  import('./firebase').then((f) => {
+    fb = f;
+    f.watch((u) => {
+      googleUser = !!u;
+      changed();
+    });
+  });
+}
+
+/** The Authorization header for the signed-in player, or null for a guest. */
 async function auth(): Promise<string | null> {
   const dev = devUser();
-  return dev ? `Dev ${dev}` : null;
+  if (dev) return `Dev ${dev}`;
+  const t = googleUser && fb ? await fb.token() : null;
+  return t ? `Bearer ${t}` : null;
 }
 
-export const signedIn = () => devUser() !== null;
+export const signedIn = () => devUser() !== null || googleUser;
 
-/** Google sign-in works once the client's Firebase config is in the build (VITE_FIREBASE_API_KEY). */
-export const googleReady = Boolean(import.meta.env.VITE_FIREBASE_API_KEY);
+/** What to tell the player when Google sign-in fails. Empty when they closed Google's window themselves. */
+export function signInError(code: string): string {
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return '';
+  if (code === 'auth/popup-blocked') return 'Your browser blocked the sign-in window. Allow pop-ups for this site, then try again.';
+  if (code === 'auth/unauthorized-domain') return 'Sign-in isn’t available on this address yet.';
+  if (code === 'auth/network-request-failed') return 'No connection. Check your internet and try again.';
+  return 'Sign-in didn’t work. Please try again.';
+}
 
+/** Opens Google's sign-in window. Throws with a message for the player, or an empty one if they closed it. */
 export async function signInWithGoogle(): Promise<void> {
-  // Firebase sign-in (same-tab redirect) plugs in here once the client's config arrives.
-  throw new Error('Google sign-in isn’t ready yet. It’s coming soon.');
+  if (!fb) throw new Error('Sign-in is still loading. Try again in a moment.');
+  try {
+    await fb.signIn();
+  } catch (e) {
+    throw new Error(signInError((e as { code?: string }).code ?? ''));
+  }
+}
+
+export async function signOut() {
+  if (devUser()) {
+    setDevUser(null);
+    return changed();
+  }
+  await fb?.signOut();
 }
 
 const ASKED_KEY = 'chesspage:login-asked';
