@@ -58,7 +58,10 @@ export function Privacy() {
 export function Footer() {
   return (
     <footer className="legal">
-      <span>From Boston Venture Studio &amp; <a href="https://arbisoft.com" target="_blank" rel="noopener">Arbisoft.com</a></span>
+      <span>
+        From <a href="https://bvs.net" target="_blank" rel="noopener">Boston Venture Studio</a> &amp;{' '}
+        <a href="https://arbisoft.com" target="_blank" rel="noopener">Arbisoft</a>
+      </span>
       <a href="/privacy">Privacy Policy</a>
     </footer>
   );
