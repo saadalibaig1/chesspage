@@ -1,4 +1,5 @@
 import { Footer } from './Privacy';
+import { Logo } from './Brand';
 import type { DayProgress } from '../lib/results';
 
 type Props = {
@@ -21,12 +22,7 @@ export function Splash({ today, progress, name, onLogin, error, onPlay }: Props)
   const { state, played, solved } = progress;
   return (
     <main className={`splash${state === 'new' ? '' : ' back'}`}>
-      <svg className="splash-logo" viewBox="0 0 64 64" aria-hidden="true">
-        <rect width="64" height="64" rx="14" fill="#769656" />
-        <rect x="32" width="32" height="32" fill="#eeeed2" />
-        <rect y="32" width="32" height="32" fill="#eeeed2" />
-        <circle cx="32" cy="32" r="13" fill="#fff" stroke="#262421" strokeWidth="4" />
-      </svg>
+      <Logo className="splash-logo" />
       {state === 'new' ? (
         <>
           <h1 className="splash-title">ChessPage</h1>

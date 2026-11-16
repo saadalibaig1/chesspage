@@ -1,11 +1,14 @@
+import { PageHeader } from './Brand';
+
 /** chesspage.com/privacy: the privacy policy, as its own plain page. */
 export function Privacy() {
   return (
+    <>
+    <PageHeader />
     <main className="doc">
-      <a className="doc-back" href="/">← ChessPage</a>
       <h1>Privacy Policy</h1>
-      <p className="muted">Last updated: November 13, 2026</p>
-      <p>ChessPage (chesspage.com) is a daily chess puzzle game run by Boston Venture Studios. Contact: <a href="mailto:hello@chesspage.com">hello@chesspage.com</a>.</p>
+      <p className="muted">Last updated: November 16, 2026</p>
+      <p>ChessPage (chesspage.com) is a daily chess puzzle game run by Boston Venture Studio. Contact: <a href="mailto:hello@chesspage.com">hello@chesspage.com</a>.</p>
 
       <h2>If you play without signing in</h2>
       <ul>
@@ -46,6 +49,8 @@ export function Privacy() {
       <h2>Changes</h2>
       <p>If this policy changes, we update the date at the top of this page.</p>
     </main>
+    <Footer />
+    </>
   );
 }
 

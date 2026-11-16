@@ -349,30 +349,47 @@ html:has(.doc) #root {
   overflow: auto;
 }
 
+.page-head {
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.page-head a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.page-logo { width: 30px; height: 30px; }
+
 .doc {
   max-width: 640px;
   margin: 0 auto;
-  padding: calc(var(--safe-t) + 24px) 16px calc(var(--safe-b) + 48px);
+  padding: 32px 16px 48px;
   font-size: 15px;
   line-height: 1.55;
 }
 
-.doc h1 { margin: 16px 0 4px; font: 700 32px/1.1 var(--serif); }
+.doc h1 { margin: 0 0 4px; font: 700 32px/1.1 var(--serif); }
+.doc .lead { margin: 0; font: 400 20px/1.35 var(--serif); }
 .doc h2 { margin: 28px 0 8px; font-size: 17px; }
 .doc ul { padding-left: 20px; }
 .doc li + li { margin-top: 4px; }
 .doc a { color: inherit; }
-.doc-back { font-weight: 700; text-decoration: none; }
+body:has(.doc) .legal { padding-bottom: calc(var(--safe-b) + 24px); }
 
-/* Team page: a photo, name, title, a line about them and LinkedIn for each person. */
+/* Team page: a photo, name, title, a line about them and LinkedIn for each person, in the game's look. */
 .doc.team { max-width: 960px; }
-.doc.team h1 { font-size: 44px; font-weight: 400; }
 
 .doc .people {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 40px 32px;
-  margin: 32px 0 48px;
+  margin: 32px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -382,7 +399,8 @@ html:has(.doc) #root {
 .people .photo {
   aspect-ratio: 1;
   overflow: hidden;
-  filter: grayscale(1);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px var(--line);
 }
 
 .people .photo img,
@@ -393,11 +411,30 @@ html:has(.doc) #root {
   object-fit: cover;
 }
 
-.people h2 { margin: 16px 0 2px; font: 400 24px/1.2 var(--serif); }
-.people .role { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
-.people p { margin: 0 0 12px; color: #4a4b4d; }
-.people a { display: inline-flex; align-items: center; gap: 2px; font-weight: 500; }
-.doc .legal { margin-top: 24px; }
+.people h2 { margin: 16px 0 2px; font: 700 20px/1.2 var(--serif); }
+
+.people .role {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.people p { margin: 0 0 14px; }
+
+/* LinkedIn as a small game key. */
+.doc .key.link-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  min-width: 0;
+  padding: 0 12px;
+  font-size: 12px;
+  text-decoration: none;
+}
 
 /* ---------- Mode tabs ---------- */
 
