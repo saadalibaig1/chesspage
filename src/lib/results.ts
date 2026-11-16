@@ -49,11 +49,11 @@ export function tryMarks(mistakes: number, state: 'play' | 'solved' | 'failed'):
 }
 
 /** One row per played level: a cross per wrong move, then a crown if solved. */
-export function shareText(day: number, r: DayResult, test = false): string {
+export function shareText(day: number, r: DayResult): string {
   const played = r.levels.flatMap((l, i) => (l ? [{ l, i }] : []));
   const hinted = played.some(({ l }) => l.hinted) ? ' 💡' : '';
   const rows = played.map(({ l, i }) => `${LEVELS[i]} ${MISS.repeat(l.mistakes)}${l.failed ? '' : CROWN}`);
-  return [`ChessPage ${test ? 'test' : day} · ${r.n}/${played.length}${hinted}`, ...rows].join('\n');
+  return [`ChessPage ${day} · ${r.n}/${played.length}${hinted}`, ...rows].join('\n');
 }
 
 const WORDS = ['Genius', 'Magnificent', 'Impressive', 'Great', 'Phew'];
@@ -99,8 +99,8 @@ export function ladderStats(history: Record<string, DayResult>, today: string): 
   };
 }
 
-export const timerShareText = (day: number, r: TimerResult, test = false) =>
-  `ChessPage Timer ${test ? 'test' : day}\n⏱️ ${r.solved ? formatTime(r.ms) : 'X'}`;
+export const timerShareText = (day: number, r: TimerResult) =>
+  `ChessPage Timer ${day}\n⏱️ ${r.solved ? formatTime(r.ms) : 'X'}`;
 
 export function formatTime(ms: number): string {
   const s = Math.floor(ms / 1000);

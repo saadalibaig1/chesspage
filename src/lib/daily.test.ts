@@ -1,4 +1,4 @@
-import { dailyLadder, dailyTimer, dayNumber, LADDER_SIZE, LEVELS, localDateKey, msUntilMidnight, randomLadder, randomPuzzle, type Pool } from './daily';
+import { dailyLadder, dailyTimer, dayNumber, LADDER_SIZE, LEVELS, localDateKey, msUntilMidnight, type Pool } from './daily';
 
 const level = (l: number): Pool[number] =>
   Array.from({ length: 365 }, (_, i) => [`l${l}-${i}`, '8/8/8/8/8/8/8/8 w - - 0 1', 'a1a2 a2a3', LEVELS[l]] as [string, string, string, number]);
@@ -47,17 +47,13 @@ test('dailyTimer is one 1600 puzzle a day that never matches the ladder', () => 
   expect(seen.size).toBe(365);
 });
 
-test('randomPuzzle picks from one level; randomLadder from each ladder level', () => {
-  expect(randomPuzzle(pool, 6, () => 0.5)).toMatchObject({ id: 'l6-182', level: 6, rating: 2200 });
-  expect(randomLadder(pool, () => 0.5).map((p) => p.id)).toEqual(['l0-182', 'l1-182', 'l2-182', 'l3-182', 'l4-182', 'l5-182']);
-});
-
 test('msUntilMidnight', () => {
   expect(msUntilMidnight(new Date(2026, 9, 23, 23, 0))).toBe(3_600_000);
 });
 
 test('puzzles carry their Lichess themes', () => {
-  const withThemes: Pool = [[['t1', '8/8/8/8/8/8/8/8 w - - 0 1', 'a1a2 a2a3', 900, 'fork advantage']]];
-  expect(randomPuzzle(withThemes, 0).themes).toBe('fork advantage');
+  const one = ['t1', '8/8/8/8/8/8/8/8 w - - 0 1', 'a1a2 a2a3', 900, 'fork advantage'] as const;
+  const withThemes = Array.from({ length: LADDER_SIZE }, () => [one]) as unknown as Pool;
+  expect(dailyLadder('2026-10-23', withThemes)[0].themes).toBe('fork advantage');
   expect(dailyLadder('2026-10-23', pool)[0].themes).toBe('');
 });

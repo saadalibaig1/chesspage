@@ -13,8 +13,6 @@ The look is light mode only, simple, and modelled on Wordle's layout, palette an
 | Board | `min(100vw − 40px, 100dvh − 300px, 520px)` | Slate-blue squares, 4px radius, 2px tile-grey ring |
 | Strip | 52px | Side disc and status text (a wrong move shows in red until the next move), plus buttons styled as keyboard keys |
 
-Test mode shows a black "Test · New ladder" pill floating under the tabs, on the left (on the right in landscape).
-
 - The tiles, board and strip are centred vertically as one group, so the page never scrolls.
 - On phones in landscape, the board sits on the left and the controls stack on the right.
 

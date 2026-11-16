@@ -33,7 +33,7 @@ test('shareText: one row per played level, a pawn per wrong move and a crown for
   d = withLevel(d, 2, lv({ failed: true, mistakes: 5 }));
   d = withLevel(d, 4, lv({ mistakes: 2 }));
   expect(shareText(12, d)).toBe('ChessPage 12 · 3/4\n1000 👑\n1200 ✖️👑\n1400 ✖️✖️✖️✖️✖️\n1800 ✖️✖️👑');
-  expect(shareText(12, withLevel(emptyDay(), 5, lv({ hinted: true })), true)).toBe('ChessPage test · 1/1 💡\n2000 👑');
+  expect(shareText(12, withLevel(emptyDay(), 5, lv({ hinted: true })))).toBe('ChessPage 12 · 1/1 💡\n2000 👑');
 });
 
 test('levelWord: by tries used; a hinted solve is just "Solved"', () => {
@@ -56,7 +56,6 @@ test('Timer: one minute, share shows the solve time or X', () => {
   expect(TIMER_MS).toBe(60_000);
   expect(timerShareText(12, { solved: true, ms: 38_400 })).toBe('ChessPage Timer 12\n⏱️ 0:38');
   expect(timerShareText(12, { solved: false, ms: 60_000 })).toBe('ChessPage Timer 12\n⏱️ X');
-  expect(timerShareText(12, { solved: true, ms: 9_000 }, true)).toBe('ChessPage Timer test\n⏱️ 0:09');
 });
 
 test('formatTime', () => {

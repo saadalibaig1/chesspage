@@ -204,24 +204,6 @@ button {
   color: var(--muted);
 }
 
-.chip {
-  position: fixed;
-  top: calc(var(--safe-t) + 112px);
-  left: calc(var(--safe-l) + 12px);
-  z-index: 5;
-  height: 26px;
-  white-space: nowrap;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--text);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 /* ---------- Front page ---------- */
 
 .splash {
@@ -1744,7 +1726,6 @@ input[role='switch']:checked::after {
   .topline { grid-column: 2; grid-row: 3; margin-top: 16px; }
   .info { grid-column: 2; grid-row: 4; width: 100%; max-width: 360px; }
   .strip { grid-column: 2; grid-row: 5; width: auto; min-width: 300px; align-self: end; margin: 0 0 16px; }
-  .chip { left: auto; right: calc(var(--safe-r) + 12px); }
   .app > .legal { display: none; }
 }
 

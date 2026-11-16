@@ -4,8 +4,8 @@ import { TimerMode } from './components/TimerMode';
 import { Icon } from './components/Icon';
 import { PieceSprite } from './components/pieces';
 import { HelpModal, SettingsModal, StatsModal } from './components/Modals';
-import { dailyLadder, dailyTimer, dayNumber, localDateKey, msUntilMidnight, randomLadder, randomPuzzle, TIMER_LEVEL, type Pool, type Puzzle } from './lib/daily';
-import { dayProgress, type DayResult, type Mode } from './lib/results';
+import { dailyLadder, dailyTimer, dayNumber, localDateKey, msUntilMidnight, type Pool, type Puzzle } from './lib/daily';
+import { dayProgress, type Mode } from './lib/results';
 import { load, loadIfAvailable, save, type Settings, type Store } from './lib/storage';
 import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
@@ -30,19 +30,16 @@ export default function App() {
   const [pool, setPool] = useState<Pool | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [loadTry, setLoadTry] = useState(0);
-  const [testNonce, setTestNonce] = useState(0);
   // The front page shows on every visit, except when a level link opens a puzzle straight away.
   const [splash, setSplash] = useState(() => linkLevel === null);
   const [splashError, setSplashError] = useState('');
   const [modal, setModal] = useState<Modal>(store.introSeen || linkLevel === null ? null : 'help');
-  const [lastResult, setLastResult] = useState<DayResult | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileNonce, setProfileNonce] = useState(0);
 
   const mode = store.mode;
-  const test = store.settings.testMode;
-  const ranked = SIGNIN && !test && !!profile?.username && !!profile.country;
+  const ranked = SIGNIN && !!profile?.username && !!profile.country;
 
   const update = useCallback((fn: (s: Store) => Store) => {
     setStore((prev) => {
@@ -119,19 +116,15 @@ export default function App() {
 
   const ladder: Puzzle[] | null = useMemo(() => {
     if (!pool) return null;
-    return test ? randomLadder(pool) : dailyLadder(today, pool);
-    // testNonce deals a fresh random ladder
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool, today, test, testNonce]);
+    return dailyLadder(today, pool);
+  }, [pool, today]);
   const timerPuzzle: Puzzle | null = useMemo(() => {
     if (!pool) return null;
-    return test ? randomPuzzle(pool, TIMER_LEVEL) : dailyTimer(today, pool);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pool, today, test, testNonce]);
+    return dailyTimer(today, pool);
+  }, [pool, today]);
 
   function onSetting(k: keyof Settings, v: boolean) {
     update((s) => ({ ...s, settings: { ...s.settings, [k]: v } }));
-    if (k === 'testMode') setModal(null);
   }
 
   const closeModal = useCallback(() => setModal(null), []);
@@ -140,10 +133,7 @@ export default function App() {
     update((s) => (s.introSeen ? s : { ...s, introSeen: true }));
   }, [update]);
 
-  const onComplete = useCallback((r: DayResult) => {
-    setLastResult(r);
-    setModal('stats');
-  }, []);
+  const onComplete = useCallback(() => setModal('stats'), []);
   // After the first finished level, offer sign-in once. Skipped if another sheet is open by then.
   const onLevelDone = useCallback(() => {
     if (!SIGNIN || signedIn() || loginAsked()) return;
@@ -168,7 +158,7 @@ export default function App() {
       const p = await api<Profile>('/me').catch(() => null);
       play(p?.username && p.country ? null : 'account');
     };
-    const progress = dayProgress(test ? undefined : store.ladder.history[today]);
+    const progress = dayProgress(store.ladder.history[today]);
     // Coming back to today's Daily: Continue opens it, See results also shows the stats.
     const onPlay = () => {
       if (progress.state === 'new') return play();
@@ -217,11 +207,6 @@ export default function App() {
         ))}
       </nav>
 
-      {test && (
-        <button type="button" className="chip" onClick={() => setTestNonce((n) => n + 1)} aria-label={`Test mode: deal a new random ${mode === 'ladder' ? 'ladder' : 'puzzle'}`}>
-          Test · New {mode === 'ladder' ? 'ladder' : 'puzzle'}
-        </button>
-      )}
 
       <div className="toasts" aria-live="assertive">
         {toasts.map((t) => <div key={t.id} className="toast">{t.text}</div>)}
@@ -239,18 +224,17 @@ export default function App() {
           )}
         </div>
       ) : mode === 'timer' ? (
-        <TimerMode key={`timer-${today}-${test}-${testNonce}`} puzzle={timerPuzzle!} today={today} day={dayNumber(today)}
-          store={store} update={update} test={test} ranked={ranked} paused={modal !== null} toast={toast} />
+        <TimerMode key={`timer-${today}`} puzzle={timerPuzzle!} today={today} day={dayNumber(today)}
+          store={store} update={update} ranked={ranked} paused={modal !== null} toast={toast} />
       ) : (
         <Ladder
-          key={`${today}-${test}-${testNonce}`}
+          key={today}
           set={ladder!}
           today={today}
           store={store}
           update={update}
           start={linkLevel}
           ranked={ranked}
-          test={test}
           paused={modal !== null}
           toast={toast}
           onComplete={onComplete}
@@ -266,8 +250,6 @@ export default function App() {
           store={store}
           today={today}
           day={dayNumber(today)}
-          result={test ? lastResult : null}
-          test={test}
           onClose={closeModal}
         />
       )}

@@ -22,10 +22,9 @@ type Props = {
   start: number | null;
   /** Signed in with a profile: send play to the server for the leaderboard. */
   ranked: boolean;
-  test: boolean;
   paused: boolean;
   toast: (msg: string, ms?: number) => void;
-  onComplete: (r: DayResult) => void;
+  onComplete: () => void;
   /** A level just finished (solved or not). */
   onLevelDone?: () => void;
   onShowStats: () => void;
@@ -44,10 +43,10 @@ function nextOpen(d: DayResult, from = 0): number {
 }
 
 /** The daily ladder: six levels from 1000 to 2000. Play any of them, in any order, with five tries on each. */
-export function Ladder({ set, today, store, update, start, ranked, test, paused, toast, onComplete, onLevelDone, onShowStats }: Props) {
+export function Ladder({ set, today, store, update, start, ranked, paused, toast, onComplete, onLevelDone, onShowStats }: Props) {
   const g = usePuzzle(paused);
-  const [day, setDay] = useState<DayResult>(() => (!test && store.ladder.history[today]) || emptyDay());
-  const [current, setCurrent] = useState<Record<number, Current>>(() => (test ? {} : loadProgress(store, today).current));
+  const [day, setDay] = useState<DayResult>(() => store.ladder.history[today] || emptyDay());
+  const [current, setCurrent] = useState<Record<number, Current>>(() => loadProgress(store, today).current);
   const [sel, setSel] = useState(() => start ?? Math.max(0, nextOpen(day)));
   const [bounce, setBounce] = useState(false);
 
@@ -60,7 +59,7 @@ export function Ladder({ set, today, store, update, start, ranked, test, paused,
   const remote = useRef<RankedDay | null>(null);
   /** The server mirror, made on first use: the profile can arrive after the first level opens. */
   const server = () => {
-    if (!ranked || test) return null;
+    if (!ranked) return null;
     return (remote.current ??= new RankedDay(today, (l) => toast(`Level ${l + 1} won’t count on the leaderboard. Open it again to retry.`, 3000)));
   };
 
@@ -98,7 +97,7 @@ export function Ladder({ set, today, store, update, start, ranked, test, paused,
 
   // Once signed in, show today's levels already finished on another device.
   useEffect(() => {
-    if (!ranked || test) return;
+    if (!ranked) return;
     type Me = { history: { date: string; level: number; mistakes: number; hinted: boolean; failed: boolean; timeMs: number }[] };
     api<Me>('/me')
       .then((m) => m.history.filter((h) => h.date === today).forEach((h) => sync(h.level, { ...h, done: true })))
@@ -108,18 +107,16 @@ export function Ladder({ set, today, store, update, start, ranked, test, paused,
 
   function saveCurrent(i: number, c: Current) {
     setCurrent((all) => ({ ...all, [i]: c }));
-    if (!test) {
-      update((s) => ({ ...s, ladder: { ...s.ladder, progress: { date: today, current: { ...loadProgress(s, today).current, [i]: c } } } }));
-    }
+    update((s) => ({ ...s, ladder: { ...s.ladder, progress: { date: today, current: { ...loadProgress(s, today).current, [i]: c } } } }));
   }
 
   function finishLevel(i: number, r: LevelResult) {
     const next = withLevel(day, i, r);
     setDay(next);
     setCurrent(({ [i]: _, ...rest }) => rest);
-    if (!test) update((s) => recordDay(s, today, next, i));
+    update((s) => recordDay(s, today, next, i));
     toast(levelWord(r), 2000);
-    if (!test) onLevelDone?.();
+    onLevelDone?.();
     if (nextOpen(next) >= 0) return;
     // All six played: celebrate, then show the stats.
     if (next.n > 0) play('complete');
@@ -127,7 +124,7 @@ export function Ladder({ set, today, store, update, start, ranked, test, paused,
       setBounce(true);
       buzz([20, 40, 20]);
     }
-    setTimeout(() => onComplete(next), 1800);
+    setTimeout(onComplete, 1800);
   }
 
   function onMove(from: Sq, to: Sq) {

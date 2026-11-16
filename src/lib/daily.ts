@@ -49,15 +49,6 @@ export function dailyTimer(key: string, pool: Pool): Puzzle {
   return toPuzzle(list[i], TIMER_LEVEL);
 }
 
-export function randomPuzzle(pool: Pool, level: number, rand = Math.random): Puzzle {
-  const list = pool[level];
-  return toPuzzle(list[Math.floor(rand() * list.length)], level);
-}
-
-export function randomLadder(pool: Pool, rand = Math.random): Puzzle[] {
-  return Array.from({ length: LADDER_SIZE }, (_, l) => randomPuzzle(pool, l, rand));
-}
-
 export function msUntilMidnight(now = new Date()): number {
   const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   return next.getTime() - now.getTime();

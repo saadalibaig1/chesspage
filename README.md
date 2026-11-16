@@ -16,7 +16,6 @@ npm run build      # static site in dist/ (host anywhere)
 npm run puzzles    # regenerate src/data/puzzles.json from the Lichess puzzle DB
 ```
 
-- **Testing:** open Settings (⚙) and turn on **Test Mode**. The Daily tab then deals random ladders that never count toward stats. The "Test · New ladder" pill deals a fresh one.
 - **Reset your day:** in devtools, run `localStorage.removeItem('chesspage:v3')`.
 - **Saved data:** progress and stats are stored in the browser (localStorage). There is no backend.
 - **Hosting:** a plain static site. Import the repo into Vercel, which detects Vite automatically, then add your domain in Project → Settings → Domains.

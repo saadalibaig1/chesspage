@@ -1,7 +1,7 @@
 import { LADDER_SIZE } from './daily';
 import { TRIES, type DayResult, type Mode, type TimerResult } from './results';
 
-export type Settings = { hard: boolean; contrast: boolean; sound: boolean; coords: boolean; testMode: boolean };
+export type Settings = { hard: boolean; contrast: boolean; sound: boolean; coords: boolean };
 /** A ladder level in play. tried = wrong moves already made (they don't use a try twice). */
 export type Current = { mistakes: number; hinted: boolean; tried?: string[] };
 /** Today's levels in play, by level index. Finished levels live in history. */
@@ -17,7 +17,7 @@ export type Store = {
 
 const KEY = 'chesspage:v3';
 const MODES: Mode[] = ['ladder', 'timer'];
-export const DEFAULT_SETTINGS: Settings = { hard: false, contrast: false, sound: true, coords: true, testMode: false };
+export const DEFAULT_SETTINGS: Settings = { hard: false, contrast: false, sound: true, coords: true };
 
 const fresh = (): Store => ({
   introSeen: false,

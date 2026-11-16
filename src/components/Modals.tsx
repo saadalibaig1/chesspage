@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Icon } from './Icon';
 import { Sheet } from './Sheet';
-import { ladderStats, shareText, TRIES, type DayResult } from '../lib/results';
+import { ladderStats, shareText, TRIES } from '../lib/results';
 import { LADDER_SIZE, LEVELS, msUntilMidnight, TIMER_LEVEL } from '../lib/daily';
 import { shareOrCopy } from '../lib/share';
 import type { Settings, Store } from '../lib/storage';
@@ -61,19 +61,17 @@ type StatsProps = {
   store: Store;
   today: string;
   day: number;
-  result: DayResult | null;
-  test: boolean;
   onClose: () => void;
 };
 
-export function StatsModal({ store, today, day, result, test, onClose }: StatsProps) {
+export function StatsModal({ store, today, day, onClose }: StatsProps) {
   const s = ladderStats(store.ladder.history, today);
-  const shown = result ?? store.ladder.history[today] ?? null;
+  const shown = store.ladder.history[today] ?? null;
   const top = Math.max(1, ...s.dist);
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    await shareOrCopy(shareText(day, shown!, test));
+    await shareOrCopy(shareText(day, shown!));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
@@ -106,7 +104,7 @@ export function StatsModal({ store, today, day, result, test, onClose }: StatsPr
         {shown && (
           <div className="post">
             <div className="next">
-              <h3 className="caps">Next ladder</h3>
+              <h3 className="caps">Next puzzle</h3>
               <span className="clock"><Countdown /></span>
             </div>
             <div className="divider" />
@@ -115,7 +113,6 @@ export function StatsModal({ store, today, day, result, test, onClose }: StatsPr
             </button>
           </div>
         )}
-        {test && shown && <p className="center muted small">Test run, not counted in your stats.</p>}
       </div>
     </Sheet>
   );
@@ -135,7 +132,6 @@ export function SettingsModal({ settings, onSetting, onClose, account }: Setting
     ['contrast', 'High Contrast Mode', 'For improved color vision'],
     ['sound', 'Sound', 'Move and result sounds'],
     ['coords', 'Coordinates', 'Files and ranks on the board'],
-    ['testMode', 'Test Mode', 'Daily: unlimited random ladders, not counted'],
   ];
   return (
     <Sheet title="Settings" onClose={onClose}>

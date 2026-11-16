@@ -18,7 +18,6 @@ type Props = {
   day: number;
   store: Store;
   update: (fn: (s: Store) => Store) => void;
-  test: boolean;
   /** Signed in with a profile: send the run to the server. */
   ranked: boolean;
   paused: boolean;
@@ -28,10 +27,10 @@ type Props = {
 type State = 'ready' | 'running' | 'over';
 
 /** One puzzle a day, the same for everyone, against a one-minute clock. The board stays hidden until Start. */
-export function TimerMode({ puzzle, today, day, store, update, test, ranked, paused, toast }: Props) {
+export function TimerMode({ puzzle, today, day, store, update, ranked, paused, toast }: Props) {
   const g = usePuzzle(paused);
-  const done = test ? undefined : store.timer.history[today];
-  const saved = !test && store.timer.progress?.date === today ? store.timer.progress : undefined;
+  const done = store.timer.history[today];
+  const saved = store.timer.progress?.date === today ? store.timer.progress : undefined;
   const [state, setState] = useState<State>(done ? 'over' : 'ready');
   const [result, setResult] = useState<TimerResult | null>(done ?? null);
   const [left, setLeft] = useState(TIMER_MS - (saved?.elapsed ?? 0));
@@ -56,7 +55,7 @@ export function TimerMode({ puzzle, today, day, store, update, test, ranked, pau
   }, []);
 
   const saveProgress = () => {
-    if (!test) update((s) => ({ ...s, timer: { ...s.timer, progress: { date: today, elapsed: used(), tried: g.run?.tried() ?? [] } } }));
+    update((s) => ({ ...s, timer: { ...s.timer, progress: { date: today, elapsed: used(), tried: g.run?.tried() ?? [] } } }));
   };
 
   useEffect(() => {
@@ -73,7 +72,7 @@ export function TimerMode({ puzzle, today, day, store, update, test, ranked, pau
   }, [state]);
 
   function begin() {
-    if (ranked && !test) {
+    if (ranked) {
       remote.current = new RankedTimer(today, () => toast('Today’s Timer won’t count on the leaderboard.', 3000));
       remote.current.start();
     }
@@ -83,7 +82,7 @@ export function TimerMode({ puzzle, today, day, store, update, test, ranked, pau
     setState('running');
     g.start(puzzle, saved?.tried ?? []);
     // Mark the run as started now, so a reload can't buy a fresh clock.
-    if (!test) update((s) => ({ ...s, timer: { ...s.timer, progress: { date: today, elapsed: offset.current, tried: saved?.tried ?? [] } } }));
+    update((s) => ({ ...s, timer: { ...s.timer, progress: { date: today, elapsed: offset.current, tried: saved?.tried ?? [] } } }));
   }
 
   function finish(r: TimerResult) {
@@ -91,7 +90,7 @@ export function TimerMode({ puzzle, today, day, store, update, test, ranked, pau
     clock.current.stop();
     setResult(r);
     setState('over');
-    if (!test) update((s) => ({ ...s, timer: { history: { ...s.timer.history, [today]: r } } }));
+    update((s) => ({ ...s, timer: { history: { ...s.timer.history, [today]: r } } }));
     toast(r.solved ? `Solved in ${formatTime(r.ms)}` : 'Out of time', 2000);
     if (r.solved) play('complete');
   }
@@ -119,7 +118,7 @@ export function TimerMode({ puzzle, today, day, store, update, test, ranked, pau
   }
 
   async function share() {
-    await shareOrCopy(timerShareText(day, result!, test));
+    await shareOrCopy(timerShareText(day, result!));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
