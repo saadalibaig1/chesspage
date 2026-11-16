@@ -7,7 +7,7 @@ import type { Sq } from '../lib/puzzle';
 import { formatTime, TIMER_MS, timerShareText, type TimerResult } from '../lib/results';
 import { shareOrCopy } from '../lib/share';
 import type { Store } from '../lib/storage';
-import { themeLabel } from '../lib/themes';
+import { themeExplain, themeLabel } from '../lib/themes';
 import { PuzzleTimer } from '../lib/timer';
 import { play } from '../lib/sound';
 import { RankedTimer } from '../lib/ranked';
@@ -136,6 +136,7 @@ export function TimerMode({ puzzle, today, day, store, update, test, ranked, pau
       </div>
       <InfoRow
         idea={state === 'over' || !store.settings.hard ? themeLabel(puzzle.themes) : 'Find the best move'}
+        explain={state === 'over' || !store.settings.hard ? themeExplain(puzzle.themes) : undefined}
         elo={LEVELS[puzzle.level]}
       />
 

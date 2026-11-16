@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Board } from './Board';
 import type { Sq } from '../lib/puzzle';
 import { CROWN, MISS, type Mark } from '../lib/results';
@@ -58,14 +58,31 @@ export function SolutionLine({ g, title }: { g: G; title: string }) {
   );
 }
 
-type InfoProps = { idea: string; elo: number; marks?: Mark[]; label?: string };
+type InfoProps = { idea: string; elo: number; explain?: string; marks?: Mark[]; label?: string };
 
-/** The row above the board: the puzzle's idea and rating on the left, the try marks on the right. */
-export function InfoRow({ idea, elo, marks, label }: InfoProps) {
+/** The row above the board: the puzzle's idea (with a ? that explains it) and rating on the left, the try marks on the right. */
+export function InfoRow({ idea, elo, explain, marks, label }: InfoProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => setOpen(false), [idea]);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => ref.current?.contains(e.target as Node) || setOpen(false);
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('pointerdown', away);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [open]);
   return (
-    <div className="info">
+    <div className="info" ref={ref}>
       <p className="idea">
         <b>{idea}</b>
+        {explain && (
+          <button type="button" className="why" aria-expanded={open} aria-label={`What is ${idea}?`} onClick={() => setOpen((o) => !o)}>?</button>
+        )}
         <span>{elo} Elo</span>
       </p>
       {marks && (
@@ -74,6 +91,12 @@ export function InfoRow({ idea, elo, marks, label }: InfoProps) {
             <span key={i} className={m}>{m === 'miss' ? MISS : m === 'crown' ? CROWN : null}</span>
           ))}
         </span>
+      )}
+      {open && explain && (
+        <div className="why-pop" role="status">
+          <b>{idea}</b>
+          {explain}
+        </div>
       )}
     </div>
   );

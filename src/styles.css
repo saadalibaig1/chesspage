@@ -150,6 +150,60 @@ button {
   background: #f2f3f5;
 }
 
+/* The help menu under the ? in the header. */
+.help-menu {
+  position: relative;
+}
+
+.icon.on {
+  background: #f2f3f5;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  display: grid;
+  min-width: 200px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  overflow: hidden;
+  animation: toast-in 120ms var(--ease);
+}
+
+.menu > * {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 48px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menu > * + * {
+  border-top: 1px solid var(--line);
+}
+
+.menu > *:hover,
+.menu > *:focus-visible {
+  background: #f2f3f5;
+}
+
+.menu svg {
+  color: var(--muted);
+}
+
 .chip {
   position: fixed;
   top: calc(var(--safe-t) + 112px);
@@ -278,6 +332,8 @@ button {
   text-decoration: none;
 }
 
+.legal span a { text-decoration: underline; text-underline-offset: 2px; }
+
 .legal a:hover { text-decoration: underline; }
 
 .splash .legal {
@@ -307,6 +363,41 @@ html:has(.doc) #root {
 .doc li + li { margin-top: 4px; }
 .doc a { color: inherit; }
 .doc-back { font-weight: 700; text-decoration: none; }
+
+/* Team page: a photo, name, title, a line about them and LinkedIn for each person. */
+.doc.team { max-width: 960px; }
+.doc.team h1 { font-size: 44px; font-weight: 400; }
+
+.doc .people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 40px 32px;
+  margin: 32px 0 48px;
+  padding: 0;
+  list-style: none;
+}
+
+.doc .people li + li { margin-top: 0; }
+
+.people .photo {
+  aspect-ratio: 1;
+  overflow: hidden;
+  filter: grayscale(1);
+}
+
+.people .photo img,
+.people .photo svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.people h2 { margin: 16px 0 2px; font: 400 24px/1.2 var(--serif); }
+.people .role { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+.people p { margin: 0 0 12px; color: #4a4b4d; }
+.people a { display: inline-flex; align-items: center; gap: 2px; font-weight: 500; }
+.doc .legal { margin-top: 24px; }
 
 /* ---------- Mode tabs ---------- */
 
@@ -458,6 +549,54 @@ html:has(.doc) #root {
   text-overflow: ellipsis;
   font-size: 17px;
   font-weight: 700;
+}
+
+.idea .why {
+  flex: none;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-left: -2px;
+  padding: 0;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.idea .why[aria-expanded='true'] {
+  border-color: var(--text);
+  background: var(--text);
+  color: #fff;
+}
+
+/* The idea's plain explanation, over the top of the board. */
+.info { position: relative; }
+
+.why-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 6;
+  max-width: min(320px, 100%);
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--text);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
+  animation: toast-in 120ms var(--ease);
+}
+
+.why-pop b {
+  display: block;
+  margin-bottom: 2px;
 }
 
 .idea span {
@@ -955,13 +1094,66 @@ html:has(.doc) #root {
 
 /* Help */
 .help .title {
-  margin: 8px 0 2px;
-  font: 700 28px/1.1 var(--serif);
+  margin: 8px 0 4px;
+  font: 700 30px/1.1 var(--serif);
 }
 
 .help .lead {
-  margin: 0 0 8px;
-  font-size: 20px;
+  margin: 0 0 12px;
+  font: 400 20px/1.3 var(--serif);
+}
+
+.help .example {
+  margin: 10px 0 14px;
+}
+
+.help .example p {
+  margin: 6px 0 0;
+}
+
+/* Small copies of the game's own parts, so the examples look like the real thing. */
+.demo-idea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.demo-idea b { font-size: 17px; }
+.demo-idea > span:last-child { color: var(--muted); font-size: 13px; font-weight: 700; }
+
+.why-demo {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.demo-marks {
+  display: flex;
+  align-items: center;
+}
+
+.demo-marks span,
+.demo-marks i {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+}
+
+.demo-marks i::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  opacity: 0.45;
 }
 
 .help ul {
@@ -992,7 +1184,6 @@ html:has(.doc) #root {
 .demo-row {
   display: flex;
   gap: 4px;
-  margin: 8px 0;
 }
 
 .tile.demo {

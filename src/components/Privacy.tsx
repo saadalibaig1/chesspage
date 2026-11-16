@@ -53,7 +53,7 @@ export function Privacy() {
 export function Footer() {
   return (
     <footer className="legal">
-      <span>© {new Date().getFullYear()} Boston Venture Studios</span>
+      <span>From Boston Venture Studio &amp; <a href="https://arbisoft.com" target="_blank" rel="noopener">Arbisoft.com</a></span>
       <a href="/privacy">Privacy Policy</a>
     </footer>
   );

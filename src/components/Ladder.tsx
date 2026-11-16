@@ -7,7 +7,7 @@ import { LADDER_SIZE, LEVELS, type Puzzle } from '../lib/daily';
 import type { Sq } from '../lib/puzzle';
 import { emptyDay, levelWord, TRIES, triesLeft, tryMarks, withLevel, type DayResult, type LevelResult } from '../lib/results';
 import { loadProgress, recordDay, type Current, type Store } from '../lib/storage';
-import { themeLabel } from '../lib/themes';
+import { themeExplain, themeLabel } from '../lib/themes';
 import { levelPath, levelShareText, parseLink } from '../lib/links';
 import { shareOrCopy } from '../lib/share';
 import { Icon } from './Icon';
@@ -199,6 +199,7 @@ export function Ladder({ set, today, store, update, start, ranked, test, paused,
       </div>
       <InfoRow
         idea={done || !store.settings.hard ? themeLabel(set[sel].themes) : `Level ${sel + 1}`}
+        explain={done || !store.settings.hard ? themeExplain(set[sel].themes) : undefined}
         elo={LEVELS[sel]}
         marks={tryMarks(done ? done.mistakes : cur.mistakes, done ? (done.failed ? 'failed' : 'solved') : 'play')}
         label={done ? title : `${left} of ${TRIES} tries left`}

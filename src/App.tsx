@@ -11,6 +11,7 @@ import { setSoundEnabled, unlockAudio } from './lib/sound';
 import { parseLink } from './lib/links';
 import { SIGNIN, api, loginAsked, onAuthChange, setLoginAsked, signedIn, signInWithGoogle, startAuth, type Profile } from './lib/api';
 import { Splash } from './components/Splash';
+import { HelpMenu } from './components/HelpMenu';
 import { Footer } from './components/Privacy';
 import { countryName, flag } from './lib/countries';
 import { AccountModal, LeaderboardModal, SignInModal } from './components/Leaderboard';
@@ -185,9 +186,7 @@ export default function App() {
       <PieceSprite />
       <header className="header">
         <div className="side">
-          <button type="button" className="icon" onClick={() => setModal('help')} aria-label="How to play">
-            <Icon name="help" />
-          </button>
+          <HelpMenu onHowTo={() => setModal('help')} />
           <button type="button" className="icon" onClick={() => setModal('board')} aria-label="Leaderboard">
             <Icon name="trophy" />
           </button>

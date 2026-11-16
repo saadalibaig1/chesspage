@@ -26,24 +26,32 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
     <Sheet title="How To Play" onClose={onClose}>
       <div className="help">
         <h2 className="title">How To Play</h2>
-        <p className="lead">Today’s ladder: {LADDER_SIZE} levels, {LEVELS[0]} to {LEVELS[LADDER_SIZE - 1]}.</p>
+        <p className="lead">Solve {LADDER_SIZE} chess puzzles a day.</p>
         <ul>
-          <li>Tap any level to play it. Do one, a few, or all six, in any order.</li>
-          <li>Find the best move. The idea above the board, such as <b>Fork</b>, tells you what to look for. Drag or tap a piece to play it.</li>
-          <li>You get {TRIES} tries on each level. A wrong move uses a try and shows a ✖️. The same wrong move again is free.</li>
-          <li>Out of tries? That level ends and its solution plays. The other levels stay open.</li>
+          <li>Find the best move. Drag or tap a piece to play it.</li>
+          <li>You get {TRIES} tries on each level. A wrong move uses one.</li>
         </ul>
-        <h4>Example</h4>
-        <div className="demo-row">
-          {['solved', 'solved', 'failed', '', 'solved', ''].map((c, i) => <Tile key={i} c={c || undefined}>{String(i + 1)}</Tile>)}
+
+        <h4>Examples</h4>
+        <div className="example">
+          <div className="demo-idea"><b>Fork</b><span className="why-demo">?</span><span>1200 Elo</span></div>
+          <p>The idea tells you what to look for. Tap <b>?</b> to learn what it means.</p>
         </div>
-        <p className="small">Played four levels and solved three: <b>3/4</b>.</p>
-        <p className="small">Tap <b>Hint</b> once to see which piece moves, and again to see where it goes. Hard Mode turns hints off and keeps the idea hidden until the end.</p>
-        <p className="small">On a computer, right-click and drag to draw an arrow, or right-click a square to mark it. Hold Shift, Alt or Ctrl for other colours. Left-click to clear.</p>
+        <div className="example">
+          <div className="demo-marks"><span>✖️</span><span>👑</span><i /><i /><i /></div>
+          <p>One wrong move, then solved on the second try.</p>
+        </div>
+        <div className="example">
+          <div className="demo-row">
+            {['solved', 'solved', 'failed', '', '', ''].map((c, i) => <Tile key={i} c={c || undefined}>{String(i + 1)}</Tile>)}
+          </div>
+          <p>Levels go from {LEVELS[0]} to {LEVELS[LADDER_SIZE - 1]} Elo. Play them in any order. Green is solved, red is out of tries.</p>
+        </div>
+
         <hr />
-        <p className="small"><b>Timer:</b> one {LEVELS[TIMER_LEVEL]} puzzle a day, the same for everyone. Solve it in under a minute.</p>
+        <p className="small">Stuck? Tap <b>Hint</b> to see which piece to move, and again to see where it goes.</p>
         <hr />
-        <p className="small muted">New levels arrive every day at midnight. Everyone gets the same ones.</p>
+        <p className="small muted">New puzzles every day at midnight, the same for everyone. Want more? <b>Timer</b> gives you one {LEVELS[TIMER_LEVEL]} puzzle and one minute.</p>
       </div>
     </Sheet>
   );
