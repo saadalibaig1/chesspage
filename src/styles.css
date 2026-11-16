@@ -329,12 +329,11 @@ button {
 
 .legal a {
   color: inherit;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-.legal span a { text-decoration: underline; text-underline-offset: 2px; }
-
-.legal a:hover { text-decoration: underline; }
+.legal a:hover { color: var(--text); }
 
 .splash .legal {
   position: fixed;
